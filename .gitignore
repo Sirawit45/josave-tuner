@@ -1,0 +1,20 @@
+# Visual Studio & Temporary Files
+*.tmp
+*.log
+*.pdb
+*.suo
+*.user
+*.userprefs
+*.cache
+.vs/
+bin/
+obj/
+
+# Disassembly & Dump Artifacts
+disassembly/
+disassembly_full/
+core_logic_il.txt
+methods_*.txt
+static_data.txt
+rva_byte_arrays.txt
+ar6_full.txt

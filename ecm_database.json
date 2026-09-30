@@ -1,0 +1,2088 @@
+{
+  "keihin": [
+    {
+      "index": 0,
+      "part_code": "38770-K2F-N01",
+      "ecm_id": "0104080F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Scoopy-i (2021-2024)"
+    },
+    {
+      "index": 1,
+      "part_code": "38770-MKK-D02",
+      "ecm_id": "0102A40101",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "Africa Twin CRF1000L / CRF1100L"
+    },
+    {
+      "index": 2,
+      "part_code": "38770-KVG-V42",
+      "ecm_id": "0100F91103",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 3,
+      "part_code": "38770-K25-901",
+      "ecm_id": "0101340F01",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 4,
+      "part_code": "38770-K46-N01",
+      "ecm_id": "0101A10F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 5,
+      "part_code": "38770-K41-N01",
+      "ecm_id": "01018B0F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 6,
+      "part_code": "38770-MFN-D01",
+      "ecm_id": "01006A0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 7,
+      "part_code": "38770-MFN-F01",
+      "ecm_id": "01006A0301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 8,
+      "part_code": "38770-MKJ-D02",
+      "ecm_id": "0102F60102",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 9,
+      "part_code": "38770-MGC-D32",
+      "ecm_id": "0101390102",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 10,
+      "part_code": "38770-K15-903",
+      "ecm_id": "01011B0F02",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "CB150R Streetfire"
+    },
+    {
+      "index": 11,
+      "part_code": "38770-K15-921",
+      "ecm_id": "0101DA0F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CB150R Streetfire"
+    },
+    {
+      "index": 12,
+      "part_code": "38770-K15-888",
+      "ecm_id": "0103130F11",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CB150R Streetfire"
+    },
+    {
+      "index": 13,
+      "part_code": "38770-K15-601",
+      "ecm_id": "0103130F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CB150R Streetfire"
+    },
+    {
+      "index": 14,
+      "part_code": "38770-K18-961",
+      "ecm_id": "0102E70F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 15,
+      "part_code": "38770-K0A-R11",
+      "ecm_id": "0102A22101",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CB300R Neo Sports Cafe (2018-2024)"
+    },
+    {
+      "index": 16,
+      "part_code": "38770-KVK-B31",
+      "ecm_id": "0101080801",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 17,
+      "part_code": "38770-K0A-A01",
+      "ecm_id": "0102B70401",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CB300R Neo Sports Cafe (2018-2024)"
+    },
+    {
+      "index": 18,
+      "part_code": "38770-MFM-651",
+      "ecm_id": "01004C0701",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 19,
+      "part_code": "38770-MFM-702",
+      "ecm_id": "01004C0601",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 20,
+      "part_code": "38770-MJW-D51",
+      "ecm_id": "0101F20101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 21,
+      "part_code": "38770-MJW-N41",
+      "ecm_id": "0101F20F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 22,
+      "part_code": "38770-MJW-B41",
+      "ecm_id": "0101F20801",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 23,
+      "part_code": "38770-MGZ-D02",
+      "ecm_id": "0101250101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2013-2015)"
+    },
+    {
+      "index": 24,
+      "part_code": "38770-MGZ-A03",
+      "ecm_id": "0101250501",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2013-2015)"
+    },
+    {
+      "index": 25,
+      "part_code": "38770-MGZ-C03",
+      "ecm_id": "0101250B02",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2013-2015)"
+    },
+    {
+      "index": 26,
+      "part_code": "38770-MGZ-C02",
+      "ecm_id": "0101250B01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2013-2015)"
+    },
+    {
+      "index": 27,
+      "part_code": "38770-MJW-D91",
+      "ecm_id": "0101DE0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 28,
+      "part_code": "38770-MJW-961",
+      "ecm_id": "0101DE0F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 29,
+      "part_code": "38770-MJW-NM1",
+      "ecm_id": "0102780F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 30,
+      "part_code": "38770-MJW-???",
+      "ecm_id": "0102780D01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 31,
+      "part_code": "38770-MFG-D02",
+      "ecm_id": "0100390101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 32,
+      "part_code": "38770-MJE-D41",
+      "ecm_id": "01019C0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 33,
+      "part_code": "38770-MJE-TB1",
+      "ecm_id": "01027D0D01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 34,
+      "part_code": "38770-MJE-G12",
+      "ecm_id": "01014E1201",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 35,
+      "part_code": "38770-MJE-G52",
+      "ecm_id": "01019C1201",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 36,
+      "part_code": "38770-MKN-D51",
+      "ecm_id": "0103050101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650R / CB650R (2019-2024)"
+    },
+    {
+      "index": 37,
+      "part_code": "38770-MKN-HF2",
+      "ecm_id": "0103BF0E01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650R / CB650R (2019-2024)"
+    },
+    {
+      "index": 38,
+      "part_code": "38770-MFA-D03",
+      "ecm_id": "0100300101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 39,
+      "part_code": "38770-MEL-613",
+      "ecm_id": "01000F0202",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFFC",
+      "model_name": "CBR1000RR Fireblade (2004-2007)"
+    },
+    {
+      "index": 40,
+      "part_code": "38770-MEL-622",
+      "ecm_id": "01000F0302",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFFC",
+      "model_name": "CBR1000RR Fireblade (2004-2007)"
+    },
+    {
+      "index": 41,
+      "part_code": "38770-MEL-643",
+      "ecm_id": "01000F0102",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFFC",
+      "model_name": "CBR1000RR Fireblade (2004-2007)"
+    },
+    {
+      "index": 42,
+      "part_code": "38770-MEL-D01",
+      "ecm_id": "01001A0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFFC",
+      "model_name": "CBR1000RR Fireblade (2004-2007)"
+    },
+    {
+      "index": 43,
+      "part_code": "38770-MEL-A21",
+      "ecm_id": "01002B0401",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2004-2007)"
+    },
+    {
+      "index": 44,
+      "part_code": "38770-MEL-A22",
+      "ecm_id": "01002B0402",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2004-2007)"
+    },
+    {
+      "index": 45,
+      "part_code": "38770-MEL-F21",
+      "ecm_id": "01002B0301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2004-2007)"
+    },
+    {
+      "index": 46,
+      "part_code": "38770-MEL-L22",
+      "ecm_id": "01002B0502",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2004-2007)"
+    },
+    {
+      "index": 47,
+      "part_code": "38770-MEL-D21",
+      "ecm_id": "01002B0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2004-2007)"
+    },
+    {
+      "index": 48,
+      "part_code": "38770-MFL-644",
+      "ecm_id": "01005E0103",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 49,
+      "part_code": "38770-MFL-702",
+      "ecm_id": "01005E0601",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 50,
+      "part_code": "38770-MFL-622",
+      "ecm_id": "01005E0301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 51,
+      "part_code": "38770-MFL-773",
+      "ecm_id": "01005E0503",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 52,
+      "part_code": "38770-MFL-671",
+      "ecm_id": "01005E0401",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 53,
+      "part_code": "38770-MFL-741",
+      "ecm_id": "0100B00301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 54,
+      "part_code": "38770-MFL-691",
+      "ecm_id": "0100B00401",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 55,
+      "part_code": "38770-MFL-861",
+      "ecm_id": "0100B00501",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 56,
+      "part_code": "38770-MFL-871",
+      "ecm_id": "0100B00801",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 57,
+      "part_code": "38770-MFL-761",
+      "ecm_id": "0100B00102",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 58,
+      "part_code": "38770-MFL-J41",
+      "ecm_id": "0100B00601",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 59,
+      "part_code": "38770-MFL-J21",
+      "ecm_id": "0100B70601",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 60,
+      "part_code": "38770-MFL-L21",
+      "ecm_id": "0100B70501",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 61,
+      "part_code": "38770-MFL-F21",
+      "ecm_id": "0100B70301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 62,
+      "part_code": "38770-MFL-D21",
+      "ecm_id": "0100B70101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 63,
+      "part_code": "38770-MFL-A21",
+      "ecm_id": "0100B70401",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2008-2011)"
+    },
+    {
+      "index": 64,
+      "part_code": "38770-MGP-L01",
+      "ecm_id": "0100F30501",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2012-2016)"
+    },
+    {
+      "index": 65,
+      "part_code": "38770-MGP-F01",
+      "ecm_id": "0100F30301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2012-2016)"
+    },
+    {
+      "index": 66,
+      "part_code": "38770-MGP-A01",
+      "ecm_id": "0100F30401",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2012-2016)"
+    },
+    {
+      "index": 67,
+      "part_code": "38770-MGP-J01",
+      "ecm_id": "0100F30601",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2012-2016)"
+    },
+    {
+      "index": 68,
+      "part_code": "38770-MGP-D01",
+      "ecm_id": "0100F30101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2012-2016)"
+    },
+    {
+      "index": 69,
+      "part_code": "38770-MGP-T42",
+      "ecm_id": "0101830D01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2012-2016)"
+    },
+    {
+      "index": 70,
+      "part_code": "38770-MGP-A92",
+      "ecm_id": "0101830401",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2012-2016)"
+    },
+    {
+      "index": 71,
+      "part_code": "38770-MGP-F63",
+      "ecm_id": "0101830302",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2012-2016)"
+    },
+    {
+      "index": 72,
+      "part_code": "38770-MGP-D62",
+      "ecm_id": "0101830101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR1000RR Fireblade (2012-2016)"
+    },
+    {
+      "index": 73,
+      "part_code": "38770-MKF-A22",
+      "ecm_id": "0102480401",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "CBR1000RR SP / Fireblade (2017-2019)"
+    },
+    {
+      "index": 74,
+      "part_code": "38770-MKF-H11",
+      "ecm_id": "0102490E01",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "CBR1000RR SP / Fireblade (2017-2019)"
+    },
+    {
+      "index": 75,
+      "part_code": "38770-MKF-L13",
+      "ecm_id": "0102490501",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "CBR1000RR SP / Fireblade (2017-2019)"
+    },
+    {
+      "index": 76,
+      "part_code": "38770-MKF-D43",
+      "ecm_id": "0102490101",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "CBR1000RR SP / Fireblade (2017-2019)"
+    },
+    {
+      "index": 77,
+      "part_code": "38770-MKFA-A22",
+      "ecm_id": "0103380D01",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "CBR1000RR SP / Fireblade (2017-2019)"
+    },
+    {
+      "index": 78,
+      "part_code": "38770-MKFA-DK2",
+      "ecm_id": "0103380101",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "CBR1000RR SP / Fireblade (2017-2019)"
+    },
+    {
+      "index": 79,
+      "part_code": "38770-NLR-B31",
+      "ecm_id": "01005EFD74",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 80,
+      "part_code": "38770-MKFA-D72",
+      "ecm_id": "0102850111",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "CBR1000RR SP / Fireblade (2017-2019)"
+    },
+    {
+      "index": 81,
+      "part_code": "38770-MKF-D72",
+      "ecm_id": "0102850101",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "CBR1000RR SP / Fireblade (2017-2019)"
+    },
+    {
+      "index": 82,
+      "part_code": "38770-NLS-000",
+      "ecm_id": "01028501FF",
+      "start_offset": "0x0",
+      "checksum_offset": "0xFFFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 83,
+      "part_code": "38770-KTY-H52",
+      "ecm_id": "0100C60102",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 84,
+      "part_code": "38770-K98-E02",
+      "ecm_id": "0102A10101",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CB150R Neo Sports Cafe (2017-2024)"
+    },
+    {
+      "index": 85,
+      "part_code": "38770-KPP-N02",
+      "ecm_id": "0100FA1001",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "CBR150R (2011-2015)"
+    },
+    {
+      "index": 86,
+      "part_code": "38770-KPP-602",
+      "ecm_id": "0101110F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "CBR150R (2011-2015)"
+    },
+    {
+      "index": 87,
+      "part_code": "38770-K45-N01",
+      "ecm_id": "0101B10F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CBR150R LED (2016-2024)"
+    },
+    {
+      "index": 88,
+      "part_code": "38770-K45-N42",
+      "ecm_id": "0102040F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CBR150R LED (2016-2024)"
+    },
+    {
+      "index": 89,
+      "part_code": "38770-K94-T02",
+      "ecm_id": "0102A00D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CBR150R (Indonesia)"
+    },
+    {
+      "index": 90,
+      "part_code": "38770-K45-NA1",
+      "ecm_id": "0103250F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CBR150R LED (2016-2024)"
+    },
+    {
+      "index": 91,
+      "part_code": "38770-K45-NA1",
+      "ecm_id": "0103250F11",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CBR150R LED (2016-2024)"
+    },
+    {
+      "index": 92,
+      "part_code": "38770-KPP-T03",
+      "ecm_id": "0100C50D02",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "CBR150R (2011-2015)"
+    },
+    {
+      "index": 93,
+      "part_code": "38770-KYJ-922",
+      "ecm_id": "0100B80502",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "CBR250R (2011-2014)"
+    },
+    {
+      "index": 94,
+      "part_code": "38770-KYJ-971",
+      "ecm_id": "0100B80F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "CBR250R (2011-2014)"
+    },
+    {
+      "index": 95,
+      "part_code": "38770-K33-N03",
+      "ecm_id": "0101790F02",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "CBR300R / CB300F (2014-2020)"
+    },
+    {
+      "index": 96,
+      "part_code": "38770-K33-D22",
+      "ecm_id": "0101790101",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "CBR300R / CB300F (2014-2020)"
+    },
+    {
+      "index": 97,
+      "part_code": "38770-KYJ-R11",
+      "ecm_id": "0101320671",
+      "start_offset": "0x0",
+      "checksum_offset": "0x18FFE",
+      "model_name": "CBR250R (2011-2014)"
+    },
+    {
+      "index": 98,
+      "part_code": "38770-K64-J01",
+      "ecm_id": "0101E40601",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 99,
+      "part_code": "38770-K64-N04",
+      "ecm_id": "0101E40F03",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 100,
+      "part_code": "38770-K64-N01",
+      "ecm_id": "0101E40F11",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 101,
+      "part_code": "38770-K64-NB1",
+      "ecm_id": "0103DC0F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 102,
+      "part_code": "38770-K33-D02",
+      "ecm_id": "0101740101",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "CBR300R / CB300F (2014-2020)"
+    },
+    {
+      "index": 103,
+      "part_code": "38770-KOA-T11",
+      "ecm_id": "0102B70D02",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 104,
+      "part_code": "38770-MGZ-U02",
+      "ecm_id": "0101250701",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2013-2015)"
+    },
+    {
+      "index": 105,
+      "part_code": "38770-MJW-N11",
+      "ecm_id": "0101DD0F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 106,
+      "part_code": "38770-MJW-T11",
+      "ecm_id": "0101DD0D01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 107,
+      "part_code": "38770-MJW-AQ1",
+      "ecm_id": "0102F20511",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 108,
+      "part_code": "38770-MJW-DR1",
+      "ecm_id": "0102F20111",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR500R / CB500F / CB500X (2016-2018)"
+    },
+    {
+      "index": 109,
+      "part_code": "38770-MGM-D11",
+      "ecm_id": "0100E00101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 110,
+      "part_code": "38770-MEE-622",
+      "ecm_id": "0100020302",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFE0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 111,
+      "part_code": "38770-MEE-612",
+      "ecm_id": "0100020202",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFE0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 112,
+      "part_code": "38770-MEE-613",
+      "ecm_id": "0100020203",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFE0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 113,
+      "part_code": "38770-MEE-F02",
+      "ecm_id": "01001B0301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFFC",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 114,
+      "part_code": "38770-MEE-D01",
+      "ecm_id": "01001B0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFFC",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 115,
+      "part_code": "38770-MEE-A02",
+      "ecm_id": "01001B0401",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFFC",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 116,
+      "part_code": "38770-MFJ-D04",
+      "ecm_id": "0100330103",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 117,
+      "part_code": "38770-MFJ-F03",
+      "ecm_id": "0100330302",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 118,
+      "part_code": "38770-MFJ-D42",
+      "ecm_id": "01007C0102",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 119,
+      "part_code": "38770-MJC-D01",
+      "ecm_id": "0101420101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 120,
+      "part_code": "38770-MJC-A01",
+      "ecm_id": "0101420401",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 121,
+      "part_code": "38770-N1A-D00",
+      "ecm_id": "0100330171",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 122,
+      "part_code": "38770-N1A-D11",
+      "ecm_id": "0101420171",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 123,
+      "part_code": "38770-MJE-A02",
+      "ecm_id": "01014E0401",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 124,
+      "part_code": "38770-MJE-T15",
+      "ecm_id": "01014E0D03",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 125,
+      "part_code": "38770-MJE-T52",
+      "ecm_id": "01019C0D02",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 126,
+      "part_code": "38770-MJE-S11",
+      "ecm_id": "0102101011",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 127,
+      "part_code": "38770-MJE-VB1",
+      "ecm_id": "01027D0701",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 128,
+      "part_code": "38770-MJE-BB1",
+      "ecm_id": "01027D0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 129,
+      "part_code": "38770-MJE-HB3",
+      "ecm_id": "01027D0E02",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650F / CB650F (2014-2018)"
+    },
+    {
+      "index": 130,
+      "part_code": "38770-MKN-D11",
+      "ecm_id": "01031A0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650R / CB650R (2019-2024)"
+    },
+    {
+      "index": 131,
+      "part_code": "38770-MKN-U11",
+      "ecm_id": "01031A1801",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650R / CB650R (2019-2024)"
+    },
+    {
+      "index": 132,
+      "part_code": "38770-MKN-T11",
+      "ecm_id": "01031A0D01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650R / CB650R (2019-2024)"
+    },
+    {
+      "index": 133,
+      "part_code": "38770-MKN-HB2",
+      "ecm_id": "0103BE0E01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650R / CB650R (2019-2024)"
+    },
+    {
+      "index": 134,
+      "part_code": "38770-MKN-DB1",
+      "ecm_id": "01031A1201",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650R / CB650R (2019-2024)"
+    },
+    {
+      "index": 135,
+      "part_code": "38770-MKN-L32",
+      "ecm_id": "01031A0501",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "CBR650R / CB650R (2019-2024)"
+    },
+    {
+      "index": 136,
+      "part_code": "38770-MKG-N52",
+      "ecm_id": "01025C0F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 137,
+      "part_code": "38770-MJP-DA1",
+      "ecm_id": "0102560101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 138,
+      "part_code": "38770-KYK-D12",
+      "ecm_id": "0102DE0501",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 139,
+      "part_code": "38770-K28-A62",
+      "ecm_id": "0102DD0501",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 140,
+      "part_code": "38770-K84-901",
+      "ecm_id": "0102320F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 141,
+      "part_code": "38770-K99-B02",
+      "ecm_id": "0103160801",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 142,
+      "part_code": "38770-KZZ-902",
+      "ecm_id": "01011A0D01",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "CRF250L / CRF250M / CRF250 Rally"
+    },
+    {
+      "index": 143,
+      "part_code": "38770-KZZ-914",
+      "ecm_id": "01011A0503",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "CRF250L / CRF250M / CRF250 Rally"
+    },
+    {
+      "index": 144,
+      "part_code": "38770-KZZ-J01",
+      "ecm_id": "0102360D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CRF250L / CRF250M / CRF250 Rally"
+    },
+    {
+      "index": 145,
+      "part_code": "38770-KZZ-J81",
+      "ecm_id": "0102360101",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CRF250L / CRF250M / CRF250 Rally"
+    },
+    {
+      "index": 146,
+      "part_code": "38770-KZZ-A22",
+      "ecm_id": "01015B0D01",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "CRF250L / CRF250M / CRF250 Rally"
+    },
+    {
+      "index": 147,
+      "part_code": "38770-K95-A41",
+      "ecm_id": "0102890101",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 148,
+      "part_code": "38770-KZZ-L41",
+      "ecm_id": "0102360F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CRF250L / CRF250M / CRF250 Rally"
+    },
+    {
+      "index": 149,
+      "part_code": "38770-K1T-T01",
+      "ecm_id": "0104070D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CRF300L / CRF300 Rally (2021-2024)"
+    },
+    {
+      "index": 150,
+      "part_code": "38770-K1T-A11",
+      "ecm_id": "0104070501",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "CRF300L / CRF300 Rally (2021-2024)"
+    },
+    {
+      "index": 151,
+      "part_code": "38770-MKE-A71",
+      "ecm_id": "0102E80501",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 152,
+      "part_code": "38770-MKE-AF3",
+      "ecm_id": "0103B60503",
+      "start_offset": "0xC000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 153,
+      "part_code": "38770-MKE-A81",
+      "ecm_id": "0102E90501",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 154,
+      "part_code": "38770-K47-M01",
+      "ecm_id": "0103261801",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 155,
+      "part_code": "38770-MEW-D41",
+      "ecm_id": "01009C0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 156,
+      "part_code": "38770-K76-M02",
+      "ecm_id": "01029E1801",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 157,
+      "part_code": "38770-K76-T62",
+      "ecm_id": "0102B50D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 158,
+      "part_code": "38770-MFT-642",
+      "ecm_id": "01008F0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 159,
+      "part_code": "38770-MGF-D12",
+      "ecm_id": "0100ED0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 160,
+      "part_code": "38770-KYZ-T03",
+      "ecm_id": "0100FB0E02",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Wave 125i ปลาวาฬ (2012-2017)"
+    },
+    {
+      "index": 161,
+      "part_code": "38770-KYZ-V21",
+      "ecm_id": "01010C1101",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Wave 125i ปลาวาฬ (2012-2017)"
+    },
+    {
+      "index": 162,
+      "part_code": "38770-KYZ-V71",
+      "ecm_id": "01015F1101",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Wave 125i ปลาวาฬ (2012-2017)"
+    },
+    {
+      "index": 163,
+      "part_code": "38770-K73-V42",
+      "ecm_id": "0103141101",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 125i LED (2018-2022)"
+    },
+    {
+      "index": 164,
+      "part_code": "30400-K0J-N01",
+      "ecm_id": "0103110F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 165,
+      "part_code": "38770-K26-911",
+      "ecm_id": "0101350501",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "MSX 125 / MSX SF / Grom 125 (2013-2020)"
+    },
+    {
+      "index": 166,
+      "part_code": "38770-K26-931",
+      "ecm_id": "0101350101",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "MSX 125 / MSX SF / Grom 125 (2013-2020)"
+    },
+    {
+      "index": 167,
+      "part_code": "38770-K26-B13",
+      "ecm_id": "0102130501",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "MSX 125 / MSX SF / Grom 125 (2013-2020)"
+    },
+    {
+      "index": 168,
+      "part_code": "38770-K26-C31",
+      "ecm_id": "0102570501",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "MSX 125 / MSX SF / Grom 125 (2013-2020)"
+    },
+    {
+      "index": 169,
+      "part_code": "38770-K56-N11",
+      "ecm_id": "0101CA0F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Sonic 150R / Winner 150 / Supra GTR 150"
+    },
+    {
+      "index": 170,
+      "part_code": "38770-K56-NJ1",
+      "ecm_id": "0103920F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Sonic 150R / Winner 150 / Supra GTR 150"
+    },
+    {
+      "index": 171,
+      "part_code": "38770-MKA-D71",
+      "ecm_id": "0801DF0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 172,
+      "part_code": "38770-GGE-941",
+      "ecm_id": "01006D1101",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 173,
+      "part_code": "38770-GGE-901",
+      "ecm_id": "0100B41101",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 174,
+      "part_code": "38770-KYE-942",
+      "ecm_id": "0101700F01",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 175,
+      "part_code": "38770-K0F-A01",
+      "ecm_id": "0102CA0501",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Monkey 125 (2018-2020)"
+    },
+    {
+      "index": 176,
+      "part_code": "38770-MJL-Y11",
+      "ecm_id": "0101820101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 177,
+      "part_code": "38770-MCG-602",
+      "ecm_id": "0101220801",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 178,
+      "part_code": "38770-K87-T52",
+      "ecm_id": "01025A0D01",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "Rebel 300 (2017-2024)"
+    },
+    {
+      "index": 179,
+      "part_code": "38770-K03-N32",
+      "ecm_id": "0101870F02",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 110i (2019-2020)"
+    },
+    {
+      "index": 180,
+      "part_code": "38770-K58-N41",
+      "ecm_id": "0102E40F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 110i / Wave 125i (2020-2022)"
+    },
+    {
+      "index": 181,
+      "part_code": "38770-KPG-H01",
+      "ecm_id": "0102D71F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 182,
+      "part_code": "38770-K56-M01",
+      "ecm_id": "0101CD1801",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Sonic 150R / Winner 150 / Supra GTR 150"
+    },
+    {
+      "index": 183,
+      "part_code": "38770-K56-M91",
+      "ecm_id": "0103931801",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Sonic 150R / Winner 150 / Supra GTR 150"
+    },
+    {
+      "index": 184,
+      "part_code": "38770-HR6-MO2",
+      "ecm_id": "0D02FC0401",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 185,
+      "part_code": "30400-K2F-N11",
+      "ecm_id": "0104130F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Scoopy-i (2021-2024)"
+    },
+    {
+      "index": 186,
+      "part_code": "30400-K93-N01",
+      "ecm_id": "01027F0F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 187,
+      "part_code": "30400-K93-T01",
+      "ecm_id": "0102810D01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 188,
+      "part_code": "38770-GFM-601",
+      "ecm_id": "01006B0801",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 189,
+      "part_code": "38770-KTW-903",
+      "ecm_id": "0100450103",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 190,
+      "part_code": "38770-KTW-B02",
+      "ecm_id": "0100530101",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 191,
+      "part_code": "38770-K53-DB2",
+      "ecm_id": "0102B10101",
+      "start_offset": "0x0",
+      "checksum_offset": "0xDFEF",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 192,
+      "part_code": "38770-K53-D03",
+      "ecm_id": "0101B80103",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 193,
+      "part_code": "38770-K56-N01",
+      "ecm_id": "0101C90F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Sonic 150R / Winner 150 / Supra GTR 150"
+    },
+    {
+      "index": 194,
+      "part_code": "38770-KZL-E12",
+      "ecm_id": "0101021101",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Spacy-i / Zoomer-X (2012-2014)"
+    },
+    {
+      "index": 195,
+      "part_code": "38770-KZL-C31",
+      "ecm_id": "01011E0F01",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Spacy-i / Zoomer-X (2012-2014)"
+    },
+    {
+      "index": 196,
+      "part_code": "38770-K0G-962",
+      "ecm_id": "01030E0501",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Super Cub 110 Pro"
+    },
+    {
+      "index": 197,
+      "part_code": "38770-KZV-A61",
+      "ecm_id": "0101BA0D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Dream Super Cub 110 (2013-2017)"
+    },
+    {
+      "index": 198,
+      "part_code": "38770-KYZ-713",
+      "ecm_id": "0100E80F02",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Wave 125i ปลาวาฬ (2012-2017)"
+    },
+    {
+      "index": 199,
+      "part_code": "38770-HL6-A05",
+      "ecm_id": "0801EB0502",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 200,
+      "part_code": "30400-K46-N21",
+      "ecm_id": "0101FA0F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 201,
+      "part_code": "30400-K46-N31",
+      "ecm_id": "0101F80F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 202,
+      "part_code": "30400-K46-NA1",
+      "ecm_id": "0102F80F01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 203,
+      "part_code": "38770-K18-902",
+      "ecm_id": "0101200F01",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 204,
+      "part_code": "38770-K18-941",
+      "ecm_id": "0101F30F01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 205,
+      "part_code": "38770-MGE-623",
+      "ecm_id": "0100AA0301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 206,
+      "part_code": "38770-MGE-D01",
+      "ecm_id": "0101030101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 207,
+      "part_code": "38770-MGE-F11",
+      "ecm_id": "0101030301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 208,
+      "part_code": "38770-MGE-D41",
+      "ecm_id": "0101190101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 209,
+      "part_code": "38770-MGE-F02",
+      "ecm_id": "0800AB0301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 210,
+      "part_code": "38770-MGE-D02",
+      "ecm_id": "0800AB0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 211,
+      "part_code": "38770-MGH-641",
+      "ecm_id": "0100FC0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 212,
+      "part_code": "38770-MGH-D21",
+      "ecm_id": "0801040101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 213,
+      "part_code": "38770-MGH-F21",
+      "ecm_id": "0801040301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 214,
+      "part_code": "38770-MGH-N12",
+      "ecm_id": "08017D0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 215,
+      "part_code": "38770-MGH-M12",
+      "ecm_id": "08017D0301",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 216,
+      "part_code": "38770-MFR-642",
+      "ecm_id": "01007B0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x3FFF8",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 217,
+      "part_code": "38770-KWW-643",
+      "ecm_id": "0100CE0D02",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Wave 110i (2009-2018)"
+    },
+    {
+      "index": 218,
+      "part_code": "38770-K03-H01",
+      "ecm_id": "0101880D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 110i (2019-2020)"
+    },
+    {
+      "index": 219,
+      "part_code": "38770-G90-V02",
+      "ecm_id": "0102681101",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 220,
+      "part_code": "38770-K58-TC2",
+      "ecm_id": "01034C0D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 110i / Wave 125i (2020-2022)"
+    },
+    {
+      "index": 221,
+      "part_code": "38770-K58-T81",
+      "ecm_id": "0102B90D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 110i / Wave 125i (2020-2022)"
+    },
+    {
+      "index": 222,
+      "part_code": "38770-K73-M41",
+      "ecm_id": "0102AD1801",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 125i LED (2018-2022)"
+    },
+    {
+      "index": 223,
+      "part_code": "38770-K56-V01",
+      "ecm_id": "0101CB1101",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Sonic 150R / Winner 150 / Supra GTR 150"
+    },
+    {
+      "index": 224,
+      "part_code": "38770-K56-V51",
+      "ecm_id": "0103591101",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Sonic 150R / Winner 150 / Supra GTR 150"
+    },
+    {
+      "index": 225,
+      "part_code": "38770-MKH-D01",
+      "ecm_id": "08024C0101",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "X-ADV 750 / Forza 750 / NC750X (2017-2024)"
+    },
+    {
+      "index": 226,
+      "part_code": "38770-MKH-D22",
+      "ecm_id": "08024CFFFF",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "X-ADV 750 / Forza 750 / NC750X (2017-2024)"
+    },
+    {
+      "index": 227,
+      "part_code": "38770-MKH-C02",
+      "ecm_id": "0802E60E01",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "X-ADV 750 / Forza 750 / NC750X (2017-2024)"
+    },
+    {
+      "index": 228,
+      "part_code": "38770-MKH-C03",
+      "ecm_id": "0802E60E02",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "X-ADV 750 / Forza 750 / NC750X (2017-2024)"
+    },
+    {
+      "index": 229,
+      "part_code": "38770-MKH-D23",
+      "ecm_id": "0802E60102",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "X-ADV 750 / Forza 750 / NC750X (2017-2024)"
+    },
+    {
+      "index": 230,
+      "part_code": "38770-MKH-D42",
+      "ecm_id": "08024CFFFE",
+      "start_offset": "0x0",
+      "checksum_offset": "0x7FFF8",
+      "model_name": "X-ADV 750 / Forza 750 / NC750X (2017-2024)"
+    },
+    {
+      "index": 231,
+      "part_code": "38770-KWT-703",
+      "ecm_id": "0101310802",
+      "start_offset": "0xE0000",
+      "checksum_offset": "0xB000",
+      "model_name": "Honda Generic ECM"
+    },
+    {
+      "index": 232,
+      "part_code": "38770-K73-M62",
+      "ecm_id": "01033F1801",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 125i LED (2018-2022)"
+    },
+    {
+      "index": 233,
+      "part_code": "38770-K3F-T01",
+      "ecm_id": "01047B0D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 125i (2023-2024)"
+    },
+    {
+      "index": 234,
+      "part_code": "38770-KYZ-T41",
+      "ecm_id": "0101B30D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 125i ปลาวาฬ (2012-2017)"
+    },
+    {
+      "index": 235,
+      "part_code": "38770-K73-T32",
+      "ecm_id": "0102580D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 125i LED (2018-2022)"
+    },
+    {
+      "index": 236,
+      "part_code": "38770-K73-T61",
+      "ecm_id": "01033E0D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 125i LED (2018-2022)"
+    },
+    {
+      "index": 237,
+      "part_code": "38770-K73-TC2",
+      "ecm_id": "01034F1801",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 125i LED (2018-2022)"
+    },
+    {
+      "index": 238,
+      "part_code": "38770-K2J-TH1",
+      "ecm_id": "0105550D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 110i / Super Cub (2021-2024)"
+    },
+    {
+      "index": 239,
+      "part_code": "38770-K2J-T01",
+      "ecm_id": "01040F0D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 110i / Super Cub (2021-2024)"
+    },
+    {
+      "index": 240,
+      "part_code": "38770-K1M-T01",
+      "ecm_id": "0103FA0D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "Wave 110i AT"
+    },
+    {
+      "index": 241,
+      "part_code": "38770-K26-B02",
+      "ecm_id": "0102130D01",
+      "start_offset": "0x8000",
+      "checksum_offset": "0x0",
+      "model_name": "MSX 125 / MSX SF / Grom 125 (2013-2020)"
+    },
+    {
+      "index": 242,
+      "part_code": "38770-K26-901",
+      "ecm_id": "0101350D01",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "MSX 125 / MSX SF / Grom 125 (2013-2020)"
+    },
+    {
+      "index": 243,
+      "part_code": "38770-KWW-642",
+      "ecm_id": "0100CE0D01",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Wave 110i (2009-2018)"
+    },
+    {
+      "index": 244,
+      "part_code": "38770-KWW-643",
+      "ecm_id": "0100CE0D01",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Wave 110i (2009-2018)"
+    },
+    {
+      "index": 245,
+      "part_code": "38770-K03-T61",
+      "ecm_id": "0101610D01",
+      "start_offset": "0x4000",
+      "checksum_offset": "0x7600",
+      "model_name": "Wave 110i (2019-2020)"
+    }
+  ],
+  "shindengen": [
+    {
+      "index": 0,
+      "part_code": "30400-K1ZF-T01 PCX160 NOABS",
+      "ecm_id": "0103D00D01",
+      "model_name": "PCX 160 e:HEV / ABS (2021-2024)"
+    },
+    {
+      "index": 1,
+      "part_code": "30400-K1ZF-T11 PCX160ABS",
+      "ecm_id": "0103CF0D01",
+      "model_name": "PCX 160 e:HEV / ABS (2021-2024)"
+    },
+    {
+      "index": 2,
+      "part_code": "30400-K1ZP-T51 PCX160 NOABS",
+      "ecm_id": "0105050D01",
+      "model_name": "PCX 160 e:HEV / ABS (2021-2024)"
+    },
+    {
+      "index": 3,
+      "part_code": "30400-K1ZP-T71 PCX160 ABS",
+      "ecm_id": "0105040D01",
+      "model_name": "PCX 160 e:HEV / ABS (2021-2024)"
+    },
+    {
+      "index": 4,
+      "part_code": "30400-K2TA-T02 LEAD125 4V",
+      "ecm_id": "0104780D01",
+      "model_name": "Lead 125 4V (2022-2024)"
+    },
+    {
+      "index": 5,
+      "part_code": "30400-K0WF-T01 ADV150",
+      "ecm_id": "01037C0D01",
+      "model_name": "ADV 150 / ADV 160 (2019-2024)"
+    },
+    {
+      "index": 6,
+      "part_code": "30400-K0WM-TA1 ADV160",
+      "ecm_id": "01048E0D01",
+      "model_name": "ADV 150 / ADV 160 (2019-2024)"
+    },
+    {
+      "index": 7,
+      "part_code": "30400-K2SF-T01 CLICK160",
+      "ecm_id": "01046D0D01",
+      "model_name": "Scoopy-i (2013-2016)"
+    },
+    {
+      "index": 8,
+      "part_code": "30400-K2VH-T11 CLICK125 2023",
+      "ecm_id": "0104DC0D01",
+      "model_name": "Click 125i (2023-2024)"
+    },
+    {
+      "index": 9,
+      "part_code": "30400-K3MF-T01 GIONRO 125",
+      "ecm_id": "01052A0D01",
+      "model_name": "Giorno+ 125 (2023-2024)"
+    },
+    {
+      "index": 10,
+      "part_code": "30400-K20J-T21 Zoomer-X 2015-2017",
+      "ecm_id": "0101FF0D01",
+      "model_name": "Zoomer-X (2015-2020)"
+    },
+    {
+      "index": 11,
+      "part_code": "30400-K36F-T01 PCX150 2014-2015",
+      "ecm_id": "0101990D01",
+      "model_name": "PCX 150 (2014-2017)"
+    },
+    {
+      "index": 12,
+      "part_code": "30400-K36S-T31  PCX150 2016-2017",
+      "ecm_id": "0102180D01",
+      "model_name": "PCX 150 (2014-2017)"
+    },
+    {
+      "index": 13,
+      "part_code": "30400-K59K-T11 Click150 2018-2020",
+      "ecm_id": "0103070D01",
+      "model_name": "Click 150i (2018-2022)"
+    },
+    {
+      "index": 14,
+      "part_code": "30400-K60F-T01 Click125 2014-2015",
+      "ecm_id": "0101D00D01",
+      "model_name": "Click 125i LED (2018-2022)"
+    },
+    {
+      "index": 15,
+      "part_code": "30400-K60S-T71 Click125 2016-2017",
+      "ecm_id": "01030A0D01",
+      "model_name": "Click 125i LED (2018-2022)"
+    },
+    {
+      "index": 16,
+      "part_code": "30400-K97F-T PCX150 2017-2019",
+      "ecm_id": "010102990D01",
+      "model_name": "PCX 150 Smart Key (2018-2020)"
+    },
+    {
+      "index": 17,
+      "part_code": "30400-K0WF-T01 ADV150 2017-2019",
+      "ecm_id": "01037C0D01",
+      "model_name": "ADV 150 / ADV 160 (2019-2024)"
+    },
+    {
+      "index": 18,
+      "part_code": "30400-K0WM-TA1 ADV160",
+      "ecm_id": "01048E0D01",
+      "model_name": "ADV 150 / ADV 160 (2019-2024)"
+    }
+  ]
+}

@@ -1,0 +1,1276 @@
+using System;
+using System.IO;
+using System.Drawing;
+using System.Text;
+using System.Threading;
+using System.IO.Ports;
+using System.Windows.Forms;
+using System.Collections.Generic;
+
+namespace RemixHondaFlash
+{
+    public class MainForm : Form
+    {
+        // Theme Colors (Modern Automotive Dark Studio)
+        private static readonly Color BgDark = Color.FromArgb(16, 20, 29);
+        private static readonly Color CardBg = Color.FromArgb(25, 34, 49);
+        private static readonly Color CardHeaderBg = Color.FromArgb(32, 43, 62);
+        private static readonly Color AccentBlue = Color.FromArgb(0, 145, 255);
+        private static readonly Color AccentGreen = Color.FromArgb(0, 230, 118);
+        private static readonly Color AccentPurple = Color.FromArgb(179, 136, 255);
+        private static readonly Color AccentRed = Color.FromArgb(255, 82, 82);
+        private static readonly Color TextWhite = Color.FromArgb(240, 246, 252);
+        private static readonly Color TextMuted = Color.FromArgb(144, 164, 174);
+        private static readonly Color BorderColor = Color.FromArgb(44, 57, 75);
+
+        // Header controls
+        private Label lblAppTitle;
+        private Label lblAppSubtitle;
+
+        // Tabs
+        private TabControl tabControl;
+        private TabPage tabFlasher;
+        private TabPage tabDiag;
+        private TabPage tabTools;
+        private TabPage tabDatabase;
+
+        // Flasher Tab Controls
+        private ComboBox cbPort;
+        private Button btnRefreshPorts;
+        private Button btnConnect;
+        private Panel pnlUsbIndicator;
+        private Label lblUsbStatus;
+        private Panel pnlEcmIndicator;
+        private Label lblEcmStatus;
+        private System.Windows.Forms.Timer tmrUsbDetector;
+        private string lastHwSig = "";
+
+        private Label lblEcmIdVal;
+        private Label lblPartCodeVal;
+        private Label lblModelNameVal;
+        private Label lblMcuTypeVal;
+        private Label lblFlashCountVal;
+
+        private TextBox txtBinPath;
+        private Button btnBrowseBin;
+        private Label lblFileSize;
+        private TextBox txtStartOffset;
+        private TextBox txtChecksumOffset;
+        private CheckBox chkFastMode;
+        private CheckBox chkManualOffset;
+
+        private Button btnReadFlash;
+        private Button btnWriteFlash;
+        private ProgressBar progressBar;
+        private Label lblProgressText;
+        private Label lblSpeedText;
+        private TextBox txtFlasherLog;
+
+        // Diagnostic Tab Controls
+        private Button btnClearDtc;
+        private Button btnResetEcm;
+        private Button btnResetFlashCount;
+        private TextBox txtLog;
+
+        // Tools Tab Controls
+        private Button btnUnlockXdf;
+        private Button btnConvertFile;
+        private Button btnFixChecksumFile;
+
+        // Database Tab Controls
+        private TextBox txtDbSearch;
+        private ListView lvDatabase;
+
+        // State
+        private byte[] loadedBin = null;
+        private EcuType detectedEcuType = EcuType.Unknown;
+        private IKLinePort activePort = null;
+        private HondaKLineEngine activeEngine = null;
+
+        public MainForm()
+        {
+            InitializeComponent();
+            RefreshPortList();
+            UpdateHardwareStatus(false);
+            PopulateDatabaseView("");
+
+            tmrUsbDetector = new System.Windows.Forms.Timer();
+            tmrUsbDetector.Interval = 1200;
+            tmrUsbDetector.Tick += (s, e) => UpdateHardwareStatus(true);
+            tmrUsbDetector.Start();
+        }
+
+        private void InitializeComponent()
+        {
+            this.Text = "JOSAVE TUNER - Professional Honda ECU Studio";
+            this.Size = new Size(1000, 740);
+            this.MinimumSize = new Size(880, 640);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackColor = BgDark;
+            this.ForeColor = TextWhite;
+            this.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            this.DoubleBuffered = true;
+
+            try
+            {
+                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
+                if (File.Exists(iconPath))
+                {
+                    this.Icon = new Icon(iconPath);
+                }
+                else
+                {
+                    this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+                }
+            }
+            catch { }
+
+            // 1. Header Banner
+            Panel pnlHeader = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 68,
+                BackColor = CardHeaderBg,
+                Padding = new Padding(20, 10, 20, 10)
+            };
+            this.Controls.Add(pnlHeader);
+
+            PictureBox pbLogo = new PictureBox
+            {
+                Location = new Point(14, 9),
+                Size = new Size(50, 50),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = Color.Transparent
+            };
+            try
+            {
+                string pngPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app_icon.png");
+                if (File.Exists(pngPath))
+                {
+                    pbLogo.Image = Image.FromFile(pngPath);
+                }
+            }
+            catch { }
+            pnlHeader.Controls.Add(pbLogo);
+
+            lblAppTitle = new Label
+            {
+                Text = "⚡ JOSAVE TUNER",
+                Font = new Font("Segoe UI", 16F, FontStyle.Bold),
+                ForeColor = AccentBlue,
+                Location = new Point(72, 10),
+                AutoSize = true
+            };
+            pnlHeader.Controls.Add(lblAppTitle);
+
+            lblAppSubtitle = new Label
+            {
+                Text = "Professional Honda Motorcycle ECU Flasher & Diagnostic Studio (Keihin & Shindengen K-Line)",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                ForeColor = TextMuted,
+                Location = new Point(76, 39),
+                AutoSize = true
+            };
+            pnlHeader.Controls.Add(lblAppSubtitle);
+
+            Label lblHeaderBadge = new Label
+            {
+                Text = "⚡ PRO STUDIO EDITION | K-LINE ISO 14230",
+                Font = new Font("Segoe UI", 8F, FontStyle.Bold),
+                ForeColor = AccentGreen,
+                BackColor = Color.FromArgb(14, 38, 30),
+                BorderStyle = BorderStyle.FixedSingle,
+                Padding = new Padding(6, 4, 6, 4),
+                Location = new Point(700, 20),
+                AutoSize = true
+            };
+            pnlHeader.Controls.Add(lblHeaderBadge);
+            pnlHeader.Resize += (s, e) =>
+            {
+                lblHeaderBadge.Location = new Point(pnlHeader.ClientSize.Width - lblHeaderBadge.Width - 20, 20);
+            };
+
+            // 2. Main Tab Control
+            tabControl = new TabControl
+            {
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Padding = new Point(16, 8)
+            };
+            this.Controls.Add(tabControl);
+            tabControl.BringToFront();
+
+            tabFlasher = new TabPage("⚡ ECU Flasher (หน้าหลัก แฟลช / ดูดไฟล์)") { BackColor = BgDark };
+            tabDiag = new TabPage("🔧 Diagnostics (วิเคราะห์ & รีเซ็ต)") { BackColor = BgDark };
+            tabTools = new TabPage("🛠 Tuner Tools (เครื่องมือช่างจูน)") { BackColor = BgDark };
+            tabDatabase = new TabPage("📚 Model Database (ฐานข้อมูล 265+ รุ่น)") { BackColor = BgDark };
+
+            tabControl.TabPages.AddRange(new TabPage[] { tabFlasher, tabDiag, tabTools, tabDatabase });
+
+            // Setup each tab
+            SetupFlasherTab();
+            SetupDiagTab();
+            SetupToolsTab();
+            SetupDatabaseTab();
+        }
+
+        #region Tab 1: Flasher Tab Setup
+
+        private void SetupFlasherTab()
+        {
+            int w = tabFlasher.ClientSize.Width > 0 ? tabFlasher.ClientSize.Width - 32 : 930;
+
+            // Panel 1: Connection Card (With USB Cable & ECM Status)
+            Panel pnlConn = CreateCardPanel(16, 12, w, 86, "การเชื่อมต่อสายฮาร์ดแวร์และการตรวจจับสาย (Hardware Interface & Cable Detection)");
+            tabFlasher.Controls.Add(pnlConn);
+
+            Label lblPort = new Label { Text = "พอร์ต / สายเคเบิ้ล:", Location = new Point(16, 26), AutoSize = true, ForeColor = TextMuted };
+            pnlConn.Controls.Add(lblPort);
+
+            cbPort = new ComboBox
+            {
+                Location = new Point(130, 23),
+                Size = new Size(220, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                BackColor = CardHeaderBg,
+                ForeColor = TextWhite,
+                FlatStyle = FlatStyle.Flat
+            };
+            pnlConn.Controls.Add(cbPort);
+
+            btnRefreshPorts = CreateStyledButton("รีเฟรช", 358, 22, 75, 27, CardHeaderBg, TextWhite);
+            btnRefreshPorts.Click += (s, e) => { RefreshPortList(); UpdateHardwareStatus(true); };
+            pnlConn.Controls.Add(btnRefreshPorts);
+
+            btnConnect = CreateStyledButton("เชื่อมต่อ ECM", 442, 20, 130, 31, AccentBlue, Color.White, true);
+            btnConnect.Click += BtnConnect_Click;
+            pnlConn.Controls.Add(btnConnect);
+
+            // Line 2: Dual Status Displays (USB Cable Status vs ECM Vehicle Status)
+            pnlUsbIndicator = new Panel { Location = new Point(16, 59), Size = new Size(12, 12), BackColor = AccentRed };
+            pnlConn.Controls.Add(pnlUsbIndicator);
+
+            lblUsbStatus = new Label { Text = "สาย USB: กำลังตรวจจับ...", Location = new Point(34, 56), Size = new Size(420, 18), ForeColor = AccentRed, Font = new Font("Segoe UI", 8.5F, FontStyle.Bold) };
+            pnlConn.Controls.Add(lblUsbStatus);
+
+            pnlEcmIndicator = new Panel { Location = new Point(480, 59), Size = new Size(12, 12), BackColor = Color.FromArgb(120, 120, 120) };
+            pnlConn.Controls.Add(pnlEcmIndicator);
+
+            lblEcmStatus = new Label { Text = "กล่อง ECM: ยังไม่เชื่อมต่อ", Location = new Point(498, 56), Size = new Size(420, 18), ForeColor = TextMuted, Font = new Font("Segoe UI", 8.5F, FontStyle.Bold) };
+            pnlConn.Controls.Add(lblEcmStatus);
+
+            pnlConn.Resize += (s, e) =>
+            {
+                int col2X = Math.Max(460, (int)(pnlConn.ClientSize.Width * 0.48));
+                pnlEcmIndicator.Location = new Point(col2X, 59);
+                lblEcmStatus.Location = new Point(col2X + 18, 56);
+                lblUsbStatus.Width = Math.Max(150, col2X - 40);
+                lblEcmStatus.Width = Math.Max(150, pnlConn.ClientSize.Width - (col2X + 24));
+            };
+
+            // Panel 2: Live ECM Information Card
+            Panel pnlEcm = CreateCardPanel(16, 106, w, 98, "ข้อมูลกล่อง ECM (Live Identification)");
+            tabFlasher.Controls.Add(pnlEcm);
+
+            Label l1 = new Label { Text = "รุ่นรถ (Model):", Location = new Point(16, 26), AutoSize = true, ForeColor = TextMuted };
+            Label l2 = new Label { Text = "ไอดี ECM ID:", Location = new Point(16, 48), AutoSize = true, ForeColor = TextMuted };
+            Label l3 = new Label { Text = "รหัสพาร์ท (Part Code):", Location = new Point(16, 70), AutoSize = true, ForeColor = TextMuted };
+
+            Label l4 = new Label { Text = "สถาปัตยกรรม MCU:", Location = new Point(480, 26), AutoSize = true, ForeColor = TextMuted };
+            Label l5 = new Label { Text = "จำนวนครั้งที่เคยแฟลช:", Location = new Point(480, 48), AutoSize = true, ForeColor = TextMuted };
+
+            pnlEcm.Controls.AddRange(new Control[] { l1, l2, l3, l4, l5 });
+
+            lblModelNameVal = new Label { Text = "-", Location = new Point(165, 26), Size = new Size(300, 18), ForeColor = AccentGreen, Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
+            lblEcmIdVal = new Label { Text = "-", Location = new Point(165, 48), Size = new Size(300, 18), ForeColor = AccentBlue, Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
+            lblPartCodeVal = new Label { Text = "-", Location = new Point(165, 70), Size = new Size(300, 18), ForeColor = TextWhite, Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
+
+            lblMcuTypeVal = new Label { Text = "-", Location = new Point(635, 26), Size = new Size(280, 18), ForeColor = AccentPurple, Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
+            lblFlashCountVal = new Label { Text = "-", Location = new Point(635, 48), Size = new Size(180, 18), ForeColor = Color.FromArgb(255, 171, 0), Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
+
+            pnlEcm.Controls.AddRange(new Control[] { lblModelNameVal, lblEcmIdVal, lblPartCodeVal, lblMcuTypeVal, lblFlashCountVal });
+
+            pnlEcm.Resize += (s, e) =>
+            {
+                int col2X = Math.Max(480, (int)(pnlEcm.ClientSize.Width * 0.50));
+                l4.Location = new Point(col2X, 26);
+                l5.Location = new Point(col2X, 48);
+                lblMcuTypeVal.Location = new Point(col2X + 155, 26);
+                lblMcuTypeVal.Width = Math.Max(120, pnlEcm.ClientSize.Width - (col2X + 155) - 16);
+                lblFlashCountVal.Location = new Point(col2X + 155, 48);
+                lblFlashCountVal.Width = Math.Max(120, pnlEcm.ClientSize.Width - (col2X + 155) - 16);
+            };
+
+            // Panel 3: Binary File Operations Card
+            Panel pnlFile = CreateCardPanel(16, 212, w, 122, "จัดการไฟล์ BIN สำหรับ แฟลช / ดูดไฟล์ (Flash Binary & Offsets)");
+            tabFlasher.Controls.Add(pnlFile);
+
+            btnBrowseBin = CreateStyledButton("เลือกไฟล์...", pnlFile.ClientSize.Width - 120, 24, 105, 26, CardHeaderBg, TextWhite);
+            btnBrowseBin.Click += BtnBrowseBin_Click;
+
+            txtBinPath = new TextBox
+            {
+                Location = new Point(16, 26),
+                Size = new Size(Math.Max(150, pnlFile.ClientSize.Width - 145), 24),
+                BackColor = CardHeaderBg,
+                ForeColor = TextWhite,
+                BorderStyle = BorderStyle.FixedSingle,
+                ReadOnly = true
+            };
+            pnlFile.Controls.AddRange(new Control[] { txtBinPath, btnBrowseBin });
+
+            pnlFile.Resize += (s, e) =>
+            {
+                btnBrowseBin.Location = new Point(pnlFile.ClientSize.Width - btnBrowseBin.Width - 16, 24);
+                txtBinPath.Width = Math.Max(150, btnBrowseBin.Left - txtBinPath.Left - 10);
+            };
+
+            Label lStart = new Label { Text = "Start Offset:", Location = new Point(16, 61), AutoSize = true, ForeColor = TextMuted };
+            txtStartOffset = new TextBox { Text = "0x0", Location = new Point(100, 58), Size = new Size(85, 23), BackColor = CardHeaderBg, ForeColor = TextWhite, BorderStyle = BorderStyle.FixedSingle };
+
+            Label lCk = new Label { Text = "Checksum Offset:", Location = new Point(210, 61), AutoSize = true, ForeColor = TextMuted };
+            txtChecksumOffset = new TextBox { Text = "0x0", Location = new Point(335, 58), Size = new Size(85, 23), BackColor = CardHeaderBg, ForeColor = TextWhite, BorderStyle = BorderStyle.FixedSingle };
+
+            lblFileSize = new Label { Text = "ขนาดไฟล์: -", Location = new Point(445, 61), AutoSize = true, ForeColor = TextMuted };
+
+            chkFastMode = new CheckBox { Text = "โหมดความเร็วสูง (Fast Mode 62,500 baud)", Location = new Point(16, 90), AutoSize = true, Checked = true, ForeColor = TextWhite };
+            chkManualOffset = new CheckBox { Text = "ปรับแต่ง Offset เอง (Manual Offsets)", Location = new Point(335, 90), AutoSize = true, ForeColor = TextWhite };
+
+            pnlFile.Controls.AddRange(new Control[] { lStart, txtStartOffset, lCk, txtChecksumOffset, lblFileSize, chkFastMode, chkManualOffset });
+
+            // Panel 4: Actions & Progress Card (Fills remaining height)
+            int actH = Math.Max(240, tabFlasher.ClientSize.Height - 356);
+            Panel pnlActions = CreateCardPanel(16, 342, w, actH, "การทำงาน (Read / Write Engine & Live Monitor)");
+            tabFlasher.Controls.Add(pnlActions);
+
+            btnReadFlash = CreateStyledButton("📥 ดูดไฟล์จาก ECM (Read Flash)", 16, 26, 240, 42, Color.FromArgb(0, 168, 150), Color.White, true);
+            btnReadFlash.Click += BtnReadFlash_Click;
+
+            btnWriteFlash = CreateStyledButton("📤 เขียนไฟล์ลง ECM (Write Flash)", 268, 26, 250, 42, AccentGreen, Color.Black, true);
+            btnWriteFlash.Click += BtnWriteFlash_Click;
+
+            pnlActions.Controls.AddRange(new Control[] { btnReadFlash, btnWriteFlash });
+
+            lblProgressText = new Label
+            {
+                Text = "พร้อมทำงาน (Ready)",
+                Location = new Point(16, 76),
+                Size = new Size(Math.Max(100, pnlActions.ClientSize.Width - 32), 20),
+                ForeColor = TextWhite,
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold)
+            };
+            lblSpeedText = new Label
+            {
+                Text = "",
+                Location = new Point(16, 98),
+                Size = new Size(Math.Max(100, pnlActions.ClientSize.Width - 32), 18),
+                ForeColor = TextMuted
+            };
+
+            progressBar = new ProgressBar
+            {
+                Location = new Point(16, 120),
+                Size = new Size(Math.Max(100, pnlActions.ClientSize.Width - 32), 22),
+                Minimum = 0,
+                Maximum = 10000,
+                BackColor = CardHeaderBg
+            };
+            pnlActions.Controls.AddRange(new Control[] { lblProgressText, lblSpeedText, progressBar });
+
+            txtFlasherLog = new TextBox
+            {
+                Location = new Point(16, 150),
+                Size = new Size(Math.Max(100, pnlActions.ClientSize.Width - 32), Math.Max(80, pnlActions.ClientSize.Height - 162)),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                BackColor = Color.FromArgb(12, 16, 24),
+                ForeColor = Color.FromArgb(0, 230, 118),
+                Font = new Font("Consolas", 9F, FontStyle.Regular),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            pnlActions.Controls.Add(txtFlasherLog);
+
+            pnlActions.Resize += (s, e) =>
+            {
+                int innerW = Math.Max(100, pnlActions.ClientSize.Width - 32);
+                lblProgressText.Width = innerW;
+                lblSpeedText.Width = innerW;
+                progressBar.Width = innerW;
+                txtFlasherLog.Width = innerW;
+                txtFlasherLog.Height = Math.Max(80, pnlActions.ClientSize.Height - 162);
+            };
+
+            tabFlasher.Resize += (s, e) =>
+            {
+                int cardW = Math.Max(200, tabFlasher.ClientSize.Width - 32);
+                pnlConn.Width = cardW;
+                pnlEcm.Width = cardW;
+                pnlFile.Width = cardW;
+                pnlActions.Width = cardW;
+                pnlActions.Height = Math.Max(200, tabFlasher.ClientSize.Height - 356);
+            };
+        }
+
+        #endregion
+
+        #region Tab 2: Diagnostics Setup
+
+        private void SetupDiagTab()
+        {
+            int w = tabDiag.ClientSize.Width > 0 ? tabDiag.ClientSize.Width - 32 : 930;
+
+            Panel pnlDiagActions = CreateCardPanel(16, 12, w, 78, "คำสั่งวิเคราะห์และรีเซ็ตกล่อง (ECM Diagnostics)");
+            tabDiag.Controls.Add(pnlDiagActions);
+
+            btnClearDtc = CreateStyledButton("ลบโค้ด (Clear DTC)", 16, 26, 160, 36, AccentRed, Color.White, true);
+            btnClearDtc.Click += (s, e) => RunAction("ลบโค้ด DTC", () => activeEngine.ClearDTC());
+
+            btnResetEcm = CreateStyledButton("รีเซ็ต ECM", 190, 26, 140, 36, Color.FromArgb(255, 145, 0), Color.Black, true);
+            btnResetEcm.Click += (s, e) => RunAction("รีเซ็ต ECM", () => activeEngine.ResetECM());
+
+            btnResetFlashCount = CreateStyledButton("รีเซ็ตแฟลชเคาท์ Shindengen", 345, 26, 230, 36, AccentPurple, Color.Black, true);
+            btnResetFlashCount.Click += (s, e) => RunAction("รีเซ็ตแฟลชเคาท์", () => activeEngine.ResetFlashCounterShindengen());
+
+            pnlDiagActions.Controls.AddRange(new Control[] { btnClearDtc, btnResetEcm, btnResetFlashCount });
+
+            int logH = Math.Max(300, tabDiag.ClientSize.Height - 110);
+            Panel pnlLog = CreateCardPanel(16, 98, w, logH, "บันทึกการทำงานและผลลัพธ์ (Diagnostic Terminal Log)");
+            tabDiag.Controls.Add(pnlLog);
+
+            txtLog = new TextBox
+            {
+                Location = new Point(16, 28),
+                Size = new Size(Math.Max(100, pnlLog.ClientSize.Width - 32), Math.Max(100, pnlLog.ClientSize.Height - 40)),
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = true,
+                BackColor = Color.FromArgb(12, 16, 24),
+                ForeColor = Color.FromArgb(0, 230, 118),
+                Font = new Font("Consolas", 9.5F, FontStyle.Regular),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            pnlLog.Controls.Add(txtLog);
+
+            pnlLog.Resize += (s, e) =>
+            {
+                txtLog.Width = Math.Max(100, pnlLog.ClientSize.Width - 32);
+                txtLog.Height = Math.Max(100, pnlLog.ClientSize.Height - 40);
+            };
+
+            tabDiag.Resize += (s, e) =>
+            {
+                int cardW = Math.Max(200, tabDiag.ClientSize.Width - 32);
+                pnlDiagActions.Width = cardW;
+                pnlLog.Width = cardW;
+                pnlLog.Height = Math.Max(200, tabDiag.ClientSize.Height - 110);
+            };
+
+            LogMessage("JOSAVE TUNER Diagnostic Terminal initialized.");
+        }
+
+        #endregion
+
+        #region Tab 3: Tools Setup
+
+        private void SetupToolsTab()
+        {
+            int w = tabTools.ClientSize.Width > 0 ? tabTools.ClientSize.Width - 32 : 930;
+
+            Panel pnlXdf = CreateCardPanel(16, 12, w, 115, "1. ปลดรหัส TunerPro XDF & ADX (Password Cleaner)");
+            tabTools.Controls.Add(pnlXdf);
+
+            Label lXdf = new Label
+            {
+                Text = "ถอดรหัสและลบรหัสผ่านออกจากไฟล์ XDF และ ADX ของ TunerPro โดยอัตโนมัติ ทำให้เปิดแก้ไขตารางจูนได้ทันที",
+                Location = new Point(16, 28),
+                Size = new Size(Math.Max(100, pnlXdf.ClientSize.Width - 32), 22),
+                ForeColor = TextMuted
+            };
+            btnUnlockXdf = CreateStyledButton("🔓 เลือกไฟล์ XDF/ADX เพื่อปลดรหัส...", 16, 56, 260, 36, AccentBlue, Color.White, true);
+            btnUnlockXdf.Click += BtnUnlockXdf_Click;
+            pnlXdf.Controls.AddRange(new Control[] { lXdf, btnUnlockXdf });
+
+            Panel pnlConv = CreateCardPanel(16, 136, w, 115, "2. แปลงไฟล์ .ACG และ .ECU เป็น .BIN (ROM Decrypter)");
+            tabTools.Controls.Add(pnlConv);
+
+            Label lConv = new Label
+            {
+                Text = "ถอดรหัสไฟล์ ROM ที่ถูกล็อคในรูปแบบ .ACG หรือ .ECU ให้กลับมาเป็นไฟล์ .BIN แบบมาตรฐานสำหรับเปิดจูน",
+                Location = new Point(16, 28),
+                Size = new Size(Math.Max(100, pnlConv.ClientSize.Width - 32), 22),
+                ForeColor = TextMuted
+            };
+            btnConvertFile = CreateStyledButton("🔄 เลือกไฟล์ ACG/ECU เพื่อแปลงเป็น BIN...", 16, 56, 300, 36, AccentGreen, Color.Black, true);
+            btnConvertFile.Click += BtnConvertFile_Click;
+            pnlConv.Controls.AddRange(new Control[] { lConv, btnConvertFile });
+
+            Panel pnlCk = CreateCardPanel(16, 260, w, 115, "3. ตรวจสอบและแก้ไข Checksum ไฟล์ BIN (Checksum Fixer)");
+            tabTools.Controls.Add(pnlCk);
+
+            Label lCkInfo = new Label
+            {
+                Text = "คำนวณและอัปเดต Checksum ไฟล์ BIN ทั้งกล่อง Keihin (8-bit) และ Shindengen (32-bit) โดยไม่ต้องเชื่อมต่อกล่อง",
+                Location = new Point(16, 28),
+                Size = new Size(Math.Max(100, pnlCk.ClientSize.Width - 32), 22),
+                ForeColor = TextMuted
+            };
+            btnFixChecksumFile = CreateStyledButton("✔ เลือกไฟล์ BIN เพื่อแก้ Checksum...", 16, 56, 280, 36, AccentPurple, Color.Black, true);
+            btnFixChecksumFile.Click += BtnFixChecksumFile_Click;
+            pnlCk.Controls.AddRange(new Control[] { lCkInfo, btnFixChecksumFile });
+
+            pnlXdf.Resize += (s, e) => { lXdf.Width = Math.Max(100, pnlXdf.ClientSize.Width - 32); };
+            pnlConv.Resize += (s, e) => { lConv.Width = Math.Max(100, pnlConv.ClientSize.Width - 32); };
+            pnlCk.Resize += (s, e) => { lCkInfo.Width = Math.Max(100, pnlCk.ClientSize.Width - 32); };
+
+            tabTools.Resize += (s, e) =>
+            {
+                int cardW = Math.Max(200, tabTools.ClientSize.Width - 32);
+                pnlXdf.Width = cardW;
+                pnlConv.Width = cardW;
+                pnlCk.Width = cardW;
+            };
+        }
+
+        #endregion
+
+        #region Tab 4: Database Setup
+
+        private void SetupDatabaseTab()
+        {
+            int w = tabDatabase.ClientSize.Width > 0 ? tabDatabase.ClientSize.Width - 32 : 930;
+
+            Panel pnlSearch = CreateCardPanel(16, 12, w, 66, "ค้นหารุ่นรถ / รหัสกล่อง ECM (Search Database 265+ Models)");
+            tabDatabase.Controls.Add(pnlSearch);
+
+            Label lSearch = new Label { Text = "พิมพ์ค้นหา (รุ่นรถ / รหัสพาร์ท / ECM ID):", Location = new Point(16, 26), AutoSize = true, ForeColor = TextMuted };
+            pnlSearch.Controls.Add(lSearch);
+
+            txtDbSearch = new TextBox
+            {
+                Location = new Point(255, 23),
+                Size = new Size(Math.Max(200, pnlSearch.ClientSize.Width - 275), 25),
+                BackColor = CardHeaderBg,
+                ForeColor = TextWhite,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            txtDbSearch.TextChanged += (s, e) => PopulateDatabaseView(txtDbSearch.Text);
+            pnlSearch.Controls.Add(txtDbSearch);
+
+            pnlSearch.Resize += (s, e) =>
+            {
+                txtDbSearch.Width = Math.Max(200, pnlSearch.ClientSize.Width - txtDbSearch.Left - 20);
+            };
+
+            int dbListH = Math.Max(300, tabDatabase.ClientSize.Height - 96);
+            lvDatabase = new ListView
+            {
+                Location = new Point(16, 86),
+                Size = new Size(w, dbListH),
+                View = View.Details,
+                FullRowSelect = true,
+                GridLines = true,
+                BackColor = Color.FromArgb(12, 16, 24),
+                ForeColor = TextWhite,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            lvDatabase.Columns.Add("ลำดับ", 50);
+            lvDatabase.Columns.Add("รุ่นรถ (Model)", 250);
+            lvDatabase.Columns.Add("รหัสพาร์ท (Part Code)", 180);
+            lvDatabase.Columns.Add("ECM ID", 120);
+            lvDatabase.Columns.Add("ผู้ผลิต (Vendor)", 110);
+            lvDatabase.Columns.Add("Start Offset", 90);
+            lvDatabase.Columns.Add("Checksum Offset", 100);
+
+            lvDatabase.Resize += (s, e) => AutoFitDatabaseColumns();
+            tabDatabase.Controls.Add(lvDatabase);
+
+            tabDatabase.Resize += (s, e) =>
+            {
+                int tabW = Math.Max(200, tabDatabase.ClientSize.Width - 32);
+                pnlSearch.Width = tabW;
+                lvDatabase.Width = tabW;
+                lvDatabase.Height = Math.Max(200, tabDatabase.ClientSize.Height - 96);
+            };
+        }
+
+        private void AutoFitDatabaseColumns()
+        {
+            if (lvDatabase == null || lvDatabase.Columns.Count < 7) return;
+            int scrollWidth = SystemInformation.VerticalScrollBarWidth + 4;
+            int totalWidth = lvDatabase.ClientSize.Width - scrollWidth;
+            if (totalWidth < 750) totalWidth = 750;
+
+            lvDatabase.Columns[0].Width = 50;                          // ลำดับ
+            lvDatabase.Columns[1].Width = (int)(totalWidth * 0.32);     // รุ่นรถ (Model)
+            lvDatabase.Columns[2].Width = (int)(totalWidth * 0.22);     // รหัสพาร์ท (Part Code)
+            lvDatabase.Columns[3].Width = (int)(totalWidth * 0.16);     // ECM ID
+            lvDatabase.Columns[4].Width = (int)(totalWidth * 0.12);     // ผู้ผลิต (Vendor)
+            lvDatabase.Columns[5].Width = (int)(totalWidth * 0.09);     // Start Offset
+            lvDatabase.Columns[6].Width = (int)(totalWidth * 0.09);     // Checksum Offset
+        }
+
+        private void PopulateDatabaseView(string query)
+        {
+            lvDatabase.Items.Clear();
+            query = (query ?? "").Trim().ToLowerInvariant();
+
+            int count = 1;
+            foreach (var r in EcmDatabase.AllRecords)
+            {
+                if (string.IsNullOrEmpty(query) ||
+                    r.ModelName.ToLowerInvariant().Contains(query) ||
+                    r.PartCode.ToLowerInvariant().Contains(query) ||
+                    r.EcmId.ToLowerInvariant().Contains(query))
+                {
+                    ListViewItem item = new ListViewItem(count.ToString());
+                    item.SubItems.Add(r.ModelName);
+                    item.SubItems.Add(r.PartCode);
+                    item.SubItems.Add(r.EcmId);
+                    item.SubItems.Add(r.Vendor.ToString());
+                    item.SubItems.Add("0x" + r.StartOffset.ToString("X"));
+                    item.SubItems.Add("0x" + r.ChecksumOffset.ToString("X"));
+
+                    if (r.Vendor == EcuVendor.Shindengen)
+                    {
+                        item.ForeColor = Color.FromArgb(128, 222, 234);
+                    }
+                    else
+                    {
+                        item.ForeColor = Color.FromArgb(200, 230, 201);
+                    }
+
+                    lvDatabase.Items.Add(item);
+                    count++;
+                }
+            }
+            AutoFitDatabaseColumns();
+        }
+
+        #endregion
+
+        #region Helpers & UI Factories
+
+        private Panel CreateCardPanel(int x, int y, int width, int height, string title)
+        {
+            Panel card = new Panel
+            {
+                Location = new Point(x, y),
+                Size = new Size(width, height),
+                BackColor = CardBg,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+
+            Label lblTitle = new Label
+            {
+                Text = title,
+                Location = new Point(12, 6),
+                AutoSize = true,
+                ForeColor = AccentBlue,
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Bold)
+            };
+            card.Controls.Add(lblTitle);
+            return card;
+        }
+
+        private Button CreateStyledButton(string text, int x, int y, int w, int h, Color bg, Color fg, bool bold = false)
+        {
+            return new Button
+            {
+                Text = text,
+                Location = new Point(x, y),
+                Size = new Size(w, h),
+                BackColor = bg,
+                ForeColor = fg,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9F, bold ? FontStyle.Bold : FontStyle.Regular),
+                Cursor = Cursors.Hand
+            };
+        }
+
+        private void LogMessage(string msg)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke((MethodInvoker)delegate { LogMessage(msg); });
+                return;
+            }
+
+            string line = string.Format("[{0:HH:mm:ss}] {1}\r\n", DateTime.Now, msg);
+            if (txtLog != null && !txtLog.IsDisposed)
+            {
+                txtLog.AppendText(line);
+            }
+            if (txtFlasherLog != null && !txtFlasherLog.IsDisposed)
+            {
+                txtFlasherLog.AppendText(line);
+            }
+        }
+
+        #endregion
+
+        #region Operations: Connect, Read, Write, Tools
+
+        private void RefreshPortList()
+        {
+            string selected = cbPort.SelectedItem != null ? cbPort.SelectedItem.ToString() : null;
+            cbPort.Items.Clear();
+
+            var hwList = HardwareDetector.DetectAllHardware();
+            bool hasFtdi = false;
+            foreach (var hw in hwList)
+            {
+                if (hw.IsFtdiDirect)
+                {
+                    cbPort.Items.Add("FTDI D2XX (Direct)");
+                    hasFtdi = true;
+                }
+                else
+                {
+                    cbPort.Items.Add(hw.PortName);
+                }
+            }
+
+            if (!hasFtdi)
+            {
+                cbPort.Items.Add("FTDI D2XX (Direct)");
+            }
+
+            cbPort.Items.Add("Virtual Simulator (Keihin 64KB)");
+            cbPort.Items.Add("Virtual Simulator (Shindengen 512KB)");
+
+            if (!string.IsNullOrEmpty(selected) && cbPort.Items.Contains(selected))
+            {
+                cbPort.SelectedItem = selected;
+            }
+            else if (cbPort.Items.Count > 0)
+            {
+                cbPort.SelectedIndex = 0;
+            }
+        }
+
+        private void UpdateHardwareStatus(bool logChanges)
+        {
+            var hwList = HardwareDetector.DetectAllHardware();
+            StringBuilder sb = new StringBuilder();
+            foreach (var h in hwList)
+            {
+                sb.Append(h.PortName).Append(":").Append(h.SerialNumber).Append(";");
+            }
+            string currentSig = sb.ToString();
+
+            bool isCablePlugged = hwList.Count > 0;
+            string cableSummary = "";
+            if (isCablePlugged)
+            {
+                var first = hwList[0];
+                if (first.IsFtdiDirect)
+                {
+                    string snPart = string.IsNullOrEmpty(first.SerialNumber) ? "" : " [" + first.SerialNumber + "]";
+                    cableSummary = string.Format("สาย USB: เสียบแล้ว ({0}{1})", first.CableName, snPart);
+                }
+                else
+                {
+                    cableSummary = string.Format("สาย USB: เสียบแล้ว ({0})", first.CableName);
+                }
+            }
+            else
+            {
+                cableSummary = "สาย USB: ไม่พบสายเคเบิ้ล (กรุณาเสียบสาย K-Line เข้าพอร์ต USB)";
+            }
+
+            if (pnlUsbIndicator != null && !pnlUsbIndicator.IsDisposed)
+            {
+                pnlUsbIndicator.BackColor = isCablePlugged ? AccentGreen : AccentRed;
+            }
+            if (lblUsbStatus != null && !lblUsbStatus.IsDisposed)
+            {
+                lblUsbStatus.ForeColor = isCablePlugged ? AccentGreen : AccentRed;
+                lblUsbStatus.Text = cableSummary;
+            }
+
+            if (pnlEcmIndicator != null && !pnlEcmIndicator.IsDisposed && lblEcmStatus != null && !lblEcmStatus.IsDisposed)
+            {
+                if (activeEngine != null)
+                {
+                    pnlEcmIndicator.BackColor = AccentGreen;
+                    lblEcmStatus.ForeColor = AccentGreen;
+                    lblEcmStatus.Text = string.Format("กล่อง ECM: เชื่อมต่อสำเร็จ ({0} - พร้อมทำงาน)", detectedEcuType != EcuType.Unknown ? detectedEcuType.ToString() : "Online");
+                }
+                else
+                {
+                    if (isCablePlugged)
+                    {
+                        pnlEcmIndicator.BackColor = Color.FromArgb(255, 171, 0); // Amber
+                        lblEcmStatus.ForeColor = Color.FromArgb(255, 171, 0);
+                        lblEcmStatus.Text = "กล่อง ECM: ยังไม่เชื่อมต่อ (รอต่อสายกับรถ & เปิดกุญแจ)";
+                    }
+                    else
+                    {
+                        pnlEcmIndicator.BackColor = Color.FromArgb(120, 120, 120);
+                        lblEcmStatus.ForeColor = TextMuted;
+                        lblEcmStatus.Text = "กล่อง ECM: ยังไม่เชื่อมต่อ";
+                    }
+                }
+            }
+
+            if (currentSig != lastHwSig)
+            {
+                lastHwSig = currentSig;
+                RefreshPortList();
+                if (logChanges)
+                {
+                    if (isCablePlugged)
+                    {
+                        LogMessage("🔌 ตรวจพบสายเคเบิ้ล USB: " + hwList[0].CableName + (string.IsNullOrEmpty(hwList[0].SerialNumber) ? "" : " [" + hwList[0].SerialNumber + "]") + " เสียบพร้อมใช้งาน");
+                    }
+                    else
+                    {
+                        LogMessage("⚠ ถอดสายเคเบิ้ล USB ออกแล้ว");
+                    }
+                }
+            }
+        }
+
+        private void BtnConnect_Click(object sender, EventArgs e)
+        {
+            if (activeEngine != null)
+            {
+                // Disconnect
+                activeEngine.Dispose();
+                activeEngine = null;
+                activePort = null;
+                btnConnect.Text = "เชื่อมต่อ ECM";
+                btnConnect.BackColor = AccentBlue;
+                UpdateHardwareStatus(false);
+                LogMessage("Disconnected from ECM.");
+                return;
+            }
+
+            string selected = cbPort.SelectedItem != null ? cbPort.SelectedItem.ToString() : "FTDI D2XX (Direct)";
+            if (selected.StartsWith("Virtual Simulator (Keihin", StringComparison.OrdinalIgnoreCase))
+            {
+                activePort = new VirtualKLinePort(EcuVendor.Keihin, 64);
+            }
+            else if (selected.StartsWith("Virtual Simulator (Shindengen", StringComparison.OrdinalIgnoreCase))
+            {
+                activePort = new VirtualKLinePort(EcuVendor.Shindengen, 512);
+            }
+            else if (selected.StartsWith("FTDI"))
+            {
+                activePort = new FtdiD2xxPort(0);
+            }
+            else
+            {
+                activePort = new SerialKLinePort(selected);
+            }
+
+            activeEngine = new HondaKLineEngine(activePort);
+            pnlEcmIndicator.BackColor = Color.FromArgb(255, 171, 0);
+            lblEcmStatus.ForeColor = Color.FromArgb(255, 171, 0);
+            lblEcmStatus.Text = "กล่อง ECM: กำลังส่ง Fast Init 10400 baud...";
+            LogMessage("Initiating K-Line Fast Init on " + selected + "...");
+
+            ThreadPool.QueueUserWorkItem(state =>
+            {
+                bool ok = activeEngine.Connect();
+                this.Invoke((MethodInvoker)delegate
+                {
+                    if (ok)
+                    {
+                        pnlEcmIndicator.BackColor = AccentGreen;
+                        lblEcmStatus.ForeColor = AccentGreen;
+                        lblEcmStatus.Text = "กล่อง ECM: เชื่อมต่อสำเร็จ! กำลังอ่านข้อมูล ECM...";
+                        btnConnect.Text = "ตัดการเชื่อมต่อ";
+                        btnConnect.BackColor = AccentRed;
+                        LogMessage("Connected successfully. Reading ECM Identification...");
+
+                        ThreadPool.QueueUserWorkItem(s => QueryEcmData());
+                    }
+                    else
+                    {
+                        pnlEcmIndicator.BackColor = AccentRed;
+                        lblEcmStatus.ForeColor = AccentRed;
+                        lblEcmStatus.Text = "กล่อง ECM: ไม่ตอบสนอง (ตรวจสอบ: 1.เสียบปลั๊ก DLC กับรถ 2.เปิดสวิตช์กุญแจ ON)";
+                        LogMessage("[ERROR] Connection failed. Check motorcycle DLC connector and 12V ignition power.");
+                        activeEngine.Dispose();
+                        activeEngine = null;
+                        activePort = null;
+                    }
+                });
+            });
+        }
+
+        private void QueryEcmData()
+        {
+            if (activeEngine == null) return;
+
+            string ecmId;
+            int flashCount;
+            bool ok = activeEngine.QueryEcmId(out ecmId);
+            activeEngine.QueryFlashCount(out flashCount);
+
+            this.Invoke((MethodInvoker)delegate
+            {
+                if (ok && !string.IsNullOrEmpty(ecmId))
+                {
+                    lblEcmIdVal.Text = ecmId;
+                    LogMessage("Found ECM ID: " + ecmId);
+
+                    var rec = EcmDatabase.LookupByEcmId(ecmId);
+                    if (rec != null)
+                    {
+                        lblModelNameVal.Text = rec.ModelName;
+                        lblPartCodeVal.Text = rec.PartCode;
+                        lblMcuTypeVal.Text = rec.Vendor + " (" + rec.RomSizeKb + " KB)";
+
+                        if (!chkManualOffset.Checked)
+                        {
+                            txtStartOffset.Text = "0x" + rec.StartOffset.ToString("X");
+                            txtChecksumOffset.Text = "0x" + rec.ChecksumOffset.ToString("X");
+                        }
+                        LogMessage("Identified Bike: " + rec.ModelName + " | Part: " + rec.PartCode);
+                    }
+                    else
+                    {
+                        lblModelNameVal.Text = "Honda Generic ECM";
+                        lblPartCodeVal.Text = "Unknown in DB";
+                        lblMcuTypeVal.Text = "Generic";
+                    }
+
+                    if (flashCount >= 0)
+                    {
+                        lblFlashCountVal.Text = flashCount.ToString() + " ครั้ง";
+                        LogMessage("Flash Write Counter: " + flashCount);
+                    }
+                }
+            });
+        }
+
+        private void BtnBrowseBin_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "ECU Binary Files (*.bin;*.hex)|*.bin;*.hex|All Files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    LoadBinaryFile(ofd.FileName);
+                }
+            }
+        }
+
+        private void LoadBinaryFile(string path)
+        {
+            txtBinPath.Text = path;
+            loadedBin = File.ReadAllBytes(path);
+            lblFileSize.Text = string.Format("ขนาดไฟล์: {0:F1} KB ({1} bytes)", loadedBin.Length / 1024.0, loadedBin.Length);
+
+            detectedEcuType = EcmDatabase.DetectEcuTypeFromBin(loadedBin);
+            lblMcuTypeVal.Text = detectedEcuType.ToString();
+
+            int startOff, ckOff;
+            if (EcmDatabase.DetectOffsets(loadedBin, detectedEcuType, out startOff, out ckOff))
+            {
+                if (!chkManualOffset.Checked)
+                {
+                    txtStartOffset.Text = "0x" + startOff.ToString("X");
+                    txtChecksumOffset.Text = "0x" + ckOff.ToString("X");
+                }
+            }
+
+            // Auto-calculate checksum
+            if (detectedEcuType == EcuType.ShindengenV850 || detectedEcuType == EcuType.ShindengenRH850 || detectedEcuType == EcuType.ShindengenRH850B)
+            {
+                ChecksumEngine.FixShindengenChecksum(loadedBin, out ckOff);
+                lblProgressText.Text = "คำนวณ Checksum 32-bit ของ Shindengen เรียบร้อยแล้ว (Valid)";
+            }
+            else
+            {
+                ChecksumEngine.FixKeihinChecksum(loadedBin, ckOff);
+                lblProgressText.Text = "คำนวณ Checksum 8-bit ของ Keihin เรียบร้อยแล้ว (Valid)";
+            }
+
+            LogMessage("Loaded BIN file: " + path + " (" + loadedBin.Length + " bytes, " + detectedEcuType + ")");
+        }
+
+        private void BtnReadFlash_Click(object sender, EventArgs e)
+        {
+            if (activeEngine == null || !activePort.IsOpen)
+            {
+                MessageBox.Show("กรุณาเชื่อมต่อกับกล่อง ECM ก่อนดูดไฟล์", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                string defaultName = string.Format("Honda_Dump_{0}_{1:yyyyMMdd_HHmmss}.bin",
+                    lblEcmIdVal.Text != "-" ? lblEcmIdVal.Text : "ROM", DateTime.Now);
+                sfd.FileName = defaultName;
+                sfd.Filter = "ECU Binary Files (*.bin)|*.bin|All Files (*.*)|*.*";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    string savePath = sfd.FileName;
+                    int startOffset = 0;
+                    try { startOffset = Convert.ToInt32(txtStartOffset.Text.Replace("0x", "").Trim(), 16); } catch { startOffset = 0; }
+
+                    int romSize = 0x10000; // default 64KB
+                    var rec = EcmDatabase.LookupByEcmId(lblEcmIdVal.Text);
+                    if (rec != null && rec.RomSizeKb > 0)
+                    {
+                        romSize = rec.RomSizeKb * 1024;
+                    }
+
+                    bool fast = chkFastMode.Checked;
+
+                    btnReadFlash.Enabled = false;
+                    btnWriteFlash.Enabled = false;
+                    progressBar.Value = 0;
+                    lblProgressText.Text = "กำลังเริ่มกระบวนการดูดไฟล์ ROM จาก ECM...";
+                    LogMessage("Starting Flash Read (Dump)... Target size: " + (romSize / 1024) + " KB");
+
+                    ThreadPool.QueueUserWorkItem(state =>
+                    {
+                        byte[] dumped;
+                        bool ok = activeEngine.ReadFlash(startOffset, romSize, detectedEcuType, fast, out dumped, (snd, p) =>
+                        {
+                            this.Invoke((MethodInvoker)delegate
+                            {
+                                progressBar.Value = (int)(p.Percentage * 100);
+                                lblProgressText.Text = p.StatusMessage;
+                                lblSpeedText.Text = string.Format("ความเร็วดูดไฟล์: {0:F1} KB/s | เวลาที่ใช้: {1:mm\\:ss}", p.SpeedKbps, p.Elapsed);
+                            });
+                        });
+
+                        this.Invoke((MethodInvoker)delegate
+                        {
+                            btnReadFlash.Enabled = true;
+                            btnWriteFlash.Enabled = true;
+
+                            if (ok && dumped != null && dumped.Length > 0)
+                            {
+                                File.WriteAllBytes(savePath, dumped);
+                                progressBar.Value = 10000;
+                                lblProgressText.Text = "ดูดไฟล์สำเร็จสมบูรณ์ 100%! ขนาด: " + (dumped.Length / 1024) + " KB";
+                                LogMessage("[SUCCESS] Flash Dump saved successfully: " + savePath);
+                                MessageBox.Show("ดูดไฟล์จากกล่อง ECM สำเร็จเรียบร้อย!!\nไฟล์ถูกบันทึกไปที่:\n" + savePath, "ดูดไฟล์สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                                // Automatically load into editor
+                                LoadBinaryFile(savePath);
+                            }
+                            else
+                            {
+                                lblProgressText.Text = "การดูดไฟล์ล้มเหลว!";
+                                LogMessage("[ERROR] Flash Dump failed. Check connections and retry.");
+                                MessageBox.Show("การดูดไฟล์จากกล่อง ECM ล้มเหลว!\nกรุณาตรวจสอบสายและลองใหม่อีกครั้ง", "ผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        });
+                    });
+                }
+            }
+        }
+
+        private void BtnWriteFlash_Click(object sender, EventArgs e)
+        {
+            if (loadedBin == null)
+            {
+                MessageBox.Show("กรุณาเลือกไฟล์ .BIN ก่อนเขียนแฟลช", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (activeEngine == null || !activePort.IsOpen)
+            {
+                MessageBox.Show("กรุณาเชื่อมต่อกับกล่อง ECM ก่อนทำการเขียนไฟล์", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            DialogResult dr = MessageBox.Show("คุณแน่ใจหรือไม่ว่าต้องการเขียนไฟล์ลงในกล่อง ECM?\nห้ามถอดสายหรือปิดไฟเลี้ยงระหว่างการเขียนไฟล์",
+                "ยืนยันการเขียนแฟลช", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr != DialogResult.Yes) return;
+
+            int startOffset = 0;
+            try { startOffset = Convert.ToInt32(txtStartOffset.Text.Replace("0x", "").Trim(), 16); } catch { startOffset = 0; }
+            bool fast = chkFastMode.Checked;
+
+            btnReadFlash.Enabled = false;
+            btnWriteFlash.Enabled = false;
+            progressBar.Value = 0;
+            lblProgressText.Text = "กำลังเตรียมการเขียนแฟลช (Erasing & Flashing)...";
+            LogMessage("Starting Flash Write... Start Offset: 0x" + startOffset.ToString("X") + " | Fast Mode: " + fast);
+
+            ThreadPool.QueueUserWorkItem(state =>
+            {
+                bool success = activeEngine.WriteFlash(loadedBin, startOffset, detectedEcuType, fast, (snd, p) =>
+                {
+                    this.Invoke((MethodInvoker)delegate
+                    {
+                        progressBar.Value = (int)(p.Percentage * 100);
+                        lblProgressText.Text = p.StatusMessage;
+                        lblSpeedText.Text = string.Format("ความเร็วเขียนไฟล์: {0:F1} KB/s | เวลาที่ใช้: {1:mm\\:ss}", p.SpeedKbps, p.Elapsed);
+                    });
+                });
+
+                this.Invoke((MethodInvoker)delegate
+                {
+                    btnReadFlash.Enabled = true;
+                    btnWriteFlash.Enabled = true;
+
+                    if (success)
+                    {
+                        progressBar.Value = 10000;
+                        lblProgressText.Text = "การเขียนไฟล์เสร็จสิ้นสมบูรณ์ 100%!";
+                        LogMessage("[SUCCESS] Flash Write completed successfully 100%.");
+                        MessageBox.Show("การเขียนไฟล์ลงกล่อง ECM สำเร็จเรียบร้อย!!\nกรุณาปิดสวิตช์กุญแจ 10 วินาทีแล้วเปิดใหม่อีกครั้ง", "เขียนไฟล์สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        lblProgressText.Text = "การเขียนไฟล์ล้มเหลว!";
+                        LogMessage("[ERROR] Flash Write failed!");
+                        MessageBox.Show("การเขียนไฟล์ลงกล่อง ECM ล้มเหลว!!\nกรุณาตรวจสอบสายและไฟเลี้ยง แล้วลองใหม่อีกครั้ง", "ผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                });
+            });
+        }
+
+        private void RunAction(string name, Func<bool> action)
+        {
+            if (activeEngine == null || !activePort.IsOpen)
+            {
+                MessageBox.Show("กรุณาเชื่อมต่อกล่อง ECM ก่อน", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            LogMessage("Executing diagnostic command: " + name + "...");
+            ThreadPool.QueueUserWorkItem(s =>
+            {
+                bool ok = action();
+                this.Invoke((MethodInvoker)delegate
+                {
+                    if (ok)
+                    {
+                        LogMessage("[SUCCESS] " + name + " completed successfully.");
+                        MessageBox.Show(name + " สำเร็จเรียบร้อย!", "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        LogMessage("[FAILED] " + name + " execution failed.");
+                        MessageBox.Show(name + " ล้มเหลว!", "ผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                });
+            });
+        }
+
+        private void BtnUnlockXdf_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "TunerPro Files (*.xdf;*.adx)|*.xdf;*.adx|All Files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    string openPass, modPass, cleanXml;
+                    if (TunerProPasswordCleaner.DecryptAndClean(ofd.FileName, out openPass, out modPass, out cleanXml))
+                    {
+                        string savePath = Path.Combine(Path.GetDirectoryName(ofd.FileName), Path.GetFileNameWithoutExtension(ofd.FileName) + "_unlocked" + Path.GetExtension(ofd.FileName));
+                        File.WriteAllText(savePath, cleanXml, Encoding.UTF8);
+                        LogMessage("TunerPro File Unlocked: " + savePath + " (Pass: " + openPass + ")");
+                        MessageBox.Show(string.Format("ปลดรหัสไฟล์สำเร็จ!\nรหัสผ่านเปิด: {0}\nรหัสผ่านแก้ไข: {1}\nบันทึกไฟล์ไปที่:\n{2}",
+                            openPass, modPass, savePath), "ปลดรหัสสำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("ไม่สามารถปลดรหัสไฟล์ได้ หรือไฟล์นี้ไม่มีการใส่รหัสผ่าน", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+            }
+        }
+
+        private void BtnConvertFile_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Encrypted ECU Files (*.acg;*.ecu)|*.acg;*.ecu|All Files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        byte[] bin;
+                        if (ofd.FileName.EndsWith(".acg", StringComparison.OrdinalIgnoreCase))
+                        {
+                            bin = FileConverterEngine.ConvertAcgToBin(ofd.FileName);
+                        }
+                        else
+                        {
+                            bin = FileConverterEngine.ConvertEcuToBin(ofd.FileName);
+                        }
+
+                        string savePath = Path.Combine(Path.GetDirectoryName(ofd.FileName), Path.GetFileNameWithoutExtension(ofd.FileName) + ".bin");
+                        File.WriteAllBytes(savePath, bin);
+                        LogMessage("Converted encrypted ROM -> BIN: " + savePath);
+                        MessageBox.Show("แปลงไฟล์เป็น BIN สำเร็จ (" + bin.Length + " bytes)\nบันทึกไปที่:\n" + savePath, "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("เกิดข้อผิดพลาดในการแปลงไฟล์: " + ex.Message, "ผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void BtnFixChecksumFile_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "ECU Binary Files (*.bin)|*.bin|All Files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    byte[] data = File.ReadAllBytes(ofd.FileName);
+                    EcuType ecu = EcmDatabase.DetectEcuTypeFromBin(data);
+                    int startOff, ckOff;
+                    EcmDatabase.DetectOffsets(data, ecu, out startOff, out ckOff);
+
+                    if (ecu == EcuType.ShindengenV850 || ecu == EcuType.ShindengenRH850 || ecu == EcuType.ShindengenRH850B)
+                    {
+                        ChecksumEngine.FixShindengenChecksum(data, out ckOff);
+                    }
+                    else
+                    {
+                        ChecksumEngine.FixKeihinChecksum(data, ckOff);
+                    }
+
+                    string outPath = Path.Combine(Path.GetDirectoryName(ofd.FileName), Path.GetFileNameWithoutExtension(ofd.FileName) + "_fixed_cksum.bin");
+                    File.WriteAllBytes(outPath, data);
+                    LogMessage("Checksum corrected and saved to " + outPath);
+                    MessageBox.Show(string.Format("แก้ไข Checksum สำเร็จ!\nประเภท: {0}\nChecksum Offset: 0x{1:X}\nบันทึกไปที่:\n{2}",
+                        ecu, ckOff, outPath), "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
+
+        #endregion
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (tmrUsbDetector != null)
+            {
+                tmrUsbDetector.Stop();
+                tmrUsbDetector.Dispose();
+                tmrUsbDetector = null;
+            }
+            if (activeEngine != null)
+            {
+                activeEngine.Dispose();
+                activeEngine = null;
+            }
+            base.OnFormClosing(e);
+        }
+
+        [STAThread]
+        public static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm());
+        }
+    }
+}
