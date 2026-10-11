@@ -257,6 +257,12 @@ namespace RemixHondaFlash
             AddKeihin(244, "38770-KWW-642", "0100CE0D01", "4000", "7600", "Wave 110i (2009-2018)", 64);
             AddKeihin(245, "38770-KWW-643", "0100CE0D01", "4000", "7600", "Wave 110i (2009-2018)", 64);
             AddKeihin(246, "38770-K03-T61", "0101610D01", "4000", "7600", "Wave 110i (2019-2020)", 64);
+            AddKeihin(247, "38770-K04-901", "01016A0101", "0", "7FFF8", "Forza 300 (2013-2017)", 512);
+            AddKeihin(248, "38770-K0B-T01", "0102DA0D01", "0", "7FFF8", "Forza 300 (2018-2020)", 512);
+            AddKeihin(249, "38770-K1B-T01", "0103E80D01", "0", "7FFF8", "Forza 350 / ADV 350 (2020-2022)", 512);
+            AddKeihin(250, "38770-K1B-T02", "01041A0D01", "0", "7FFF8", "Forza 350 / ADV 350 (2022-2023)", 512);
+            AddKeihin(251, "38770-K1B-T21", "01049B0D01", "0", "7FFF8", "Forza 350 (2023-2024)", 512);
+            AddKeihin(252, "38770-K1B-T61", "01053A0D01", "0", "7FFF8", "Forza 350 (2024-2025 TFT)", 512);
             AddShindengen(0, "30400-K1ZF-T01 PCX160 NOABS", "0103D00D01", "PCX 160 e:HEV / ABS (2021-2024)", 512);
             AddShindengen(1, "30400-K1ZF-T11 PCX160ABS", "0103CF0D01", "PCX 160 e:HEV / ABS (2021-2024)", 512);
             AddShindengen(2, "30400-K1ZP-T51 PCX160 NOABS", "0105050D01", "PCX 160 e:HEV / ABS (2021-2024)", 512);
