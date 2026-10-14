@@ -773,12 +773,13 @@ namespace RemixHondaFlash
 
             if (isShindengen)
             {
-                // Authentic Giorno+ K3M / Shindengen 256KB Factory Breakpoints
+                // Authentic Giorno+ K3M / Shindengen 256KB Factory Breakpoints (35 RPM x 29 TPS)
                 rpmLabels = new string[]
                 {
-                    "678", "712", "733", "808", "920", "1036", "1263", "1515", "1804", "2084",
-                    "2419", "2764", "3209", "3699", "3999", "4298", "4614", "4939", "5352", "5778",
-                    "6269", "6730", "7123", "7486", "7737", "7957", "8178", "8240", "9525"
+                    "500", "700", "850", "1000", "1200", "1400", "1600", "1800", "2000", "2200",
+                    "2400", "2600", "2800", "3000", "3250", "3500", "3750", "4000", "4300", "4600",
+                    "5000", "5400", "5800", "6200", "6600", "7000", "7400", "7800", "8200", "8600",
+                    "9000", "9300", "9600", "10000", "10500"
                 };
                 tpsLabels = new string[]
                 {
@@ -787,71 +788,57 @@ namespace RemixHondaFlash
                     "75.0%", "80.0%", "85.0%", "90.0%", "93.0%", "95.0%", "97.0%", "98.5%", "100.0%"
                 };
 
-                // 1. Fuel In-Gear (น้ำมัน 1-4) - Address 0x3A078 (29x29, 16-bit uint LE, X/1000 ms)
-                XdfTable fuelInGear = new XdfTable
+                // 1. Fuel Main (น้ำมันตารางหลัก 35x29) - Address 0x3A078 (35x29 = 1015 words = 2030 bytes)
+                XdfTable fuelMain = new XdfTable
                 {
-                    UniqueId = "FUEL_INGEAR",
-                    Title = "น้ำมัน 1-4 (Fuel In-Gear 29x29)",
-                    Description = "ตารางหลักการจ่ายน้ำมัน TPS vs RPM (ความกว้างพัลส์หัวฉีดหน่วย ms)",
+                    UniqueId = "FUEL_MAIN",
+                    Title = "น้ำมันตารางหลัก (Fuel Injection TPS vs RPM 35x29)",
+                    Description = "ตารางหลักการจ่ายน้ำมัน TPS vs RPM ความกว้างพัลส์หัวฉีด (หน่วย ms)",
                     CategoryName = "น้ำมัน (Fuel Injection)",
                     DecimalPlaces = 3,
                     MinValue = 0.5f,
                     MaxValue = 18.0f
                 };
-                fuelInGear.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
-                fuelInGear.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
-                fuelInGear.AxisZ = new XdfAxis("z") { Units = "ms", ElementSizeBytes = 2, Address = 0x3A078, MathEquation = "X/1000" };
-                def.Tables.Add(fuelInGear);
+                fuelMain.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                fuelMain.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 35, Labels = rpmLabels };
+                fuelMain.AxisZ = new XdfAxis("z") { Units = "ms", ElementSizeBytes = 2, Address = 0x3A078, MathEquation = "X/1000" };
+                def.Tables.Add(fuelMain);
 
-                // 2. Fuel Fast-Idle (น้ำมันเกียร์ว่าง N) - Address 0x3A70A (29x29, 16-bit uint LE, X/1000 ms)
-                XdfTable fuelNeutral = new XdfTable
+                // 2. Ignition Main (ไฟตารางหลัก 35x29) - Address 0x3BA36 (35x29 = 1015 bytes)
+                XdfTable ignMain = new XdfTable
                 {
-                    UniqueId = "FUEL_NEUTRAL",
-                    Title = "น้ำมัน N (Fuel Fast-Idle 29x29)",
-                    Description = "ตารางการจ่ายน้ำมันรอบเดินเบา Fast-Idle และช่วง TPS ต่ำ",
-                    CategoryName = "น้ำมัน (Fuel Injection)",
-                    DecimalPlaces = 3,
-                    MinValue = 0.5f,
-                    MaxValue = 35.0f
-                };
-                fuelNeutral.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
-                fuelNeutral.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
-                fuelNeutral.AxisZ = new XdfAxis("z") { Units = "ms", ElementSizeBytes = 2, Address = 0x3A70A, MathEquation = "X/1000" };
-                def.Tables.Add(fuelNeutral);
-
-                // 3. Ignition In-Gear (ไฟ 1-4) - Address 0x3BA36 (29x29, 8-bit uint, X*0.3572-15.72 deg BTDC)
-                XdfTable ignInGear = new XdfTable
-                {
-                    UniqueId = "IGN_INGEAR",
-                    Title = "ไฟ 1-4 (Ignition In-Gear 29x29)",
+                    UniqueId = "IGN_MAIN",
+                    Title = "ไฟตารางหลัก (Ignition Timing 35x29)",
                     Description = "องศาไฟจุดระเบิดหลักเทียบกับรอบและคันเร่ง (°BTDC)",
                     CategoryName = "องศาไฟ (Ignition Timing)",
                     DecimalPlaces = 2,
                     MinValue = -15f,
                     MaxValue = 80f
                 };
-                ignInGear.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
-                ignInGear.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
-                ignInGear.AxisZ = new XdfAxis("z") { Units = "°BTDC", ElementSizeBytes = 1, Address = 0x3BA36, MathEquation = "X*0.3572-15.72" };
-                def.Tables.Add(ignInGear);
+                ignMain.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                ignMain.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 35, Labels = rpmLabels };
+                ignMain.AxisZ = new XdfAxis("z") { Units = "°BTDC", ElementSizeBytes = 1, Address = 0x3BA36, MathEquation = "X*0.3572-15.72" };
+                def.Tables.Add(ignMain);
 
-                // 4. Ignition Neutral / Throttle Response (ไฟ N) - Address 0x3B61F
-                XdfTable ignNeutral = new XdfTable
+                // 3. Ignition Throttle Response (ไฟในคันเร่ง 16x1) - Address 0x3B61F (16 bytes)
+                string[] thLabels = new string[16];
+                for (int i = 0; i < 16; i++) thLabels[i] = "P" + (i + 1);
+                XdfTable ignThrottle = new XdfTable
                 {
-                    UniqueId = "IGN_NEUTRAL",
-                    Title = "ไฟ N (Ignition Neutral 29x29)",
-                    Description = "องศาไฟจุดระเบิดจังหวะเกียร์ว่างหรือคันเร่งต่ำ (°BTDC)",
+                    UniqueId = "IGN_THROTTLE",
+                    Title = "ไฟในคันเร่ง (Ignition Throttle Response 16x1)",
+                    Description = "องศาไฟชดเชยตามการตอบสนองคันเร่ง (°BTDC)",
                     CategoryName = "องศาไฟ (Ignition Timing)",
                     DecimalPlaces = 2,
                     MinValue = -15f,
                     MaxValue = 80f
                 };
-                ignNeutral.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
-                ignNeutral.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
-                ignNeutral.AxisZ = new XdfAxis("z") { Units = "°BTDC", ElementSizeBytes = 1, Address = 0x3B61F, MathEquation = "X*0.3572-15.72" };
-                def.Tables.Add(ignNeutral);
+                ignThrottle.AxisX = new XdfAxis("x") { Units = "Step", IndexCount = 1, Labels = new string[] { "องศาไฟ" } };
+                ignThrottle.AxisY = new XdfAxis("y") { Units = "จุด", IndexCount = 16, Labels = thLabels };
+                ignThrottle.AxisZ = new XdfAxis("z") { Units = "°BTDC", ElementSizeBytes = 1, Address = 0x3B61F, MathEquation = "X*0.3572-15.72" };
+                def.Tables.Add(ignThrottle);
 
-                // 5. Constants (Scalars for Rev Limiters - 16-bit LE direct RPM)
+                // 4. Constants (Scalars for Rev Limiters - 16-bit LE direct RPM)
                 def.Constants.Add(new XdfConstant
                 {
                     UniqueId = "REV_LIMIT_FUEL_1",

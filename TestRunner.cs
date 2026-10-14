@@ -724,18 +724,19 @@ namespace RemixHondaFlash
             // 3. Test Builtin Definition for Giorno+ (K3M)
             XdfDefinition shinDef = XdfDefinition.GetBuiltinDefinition("Giorno+ (K3M)", mock256k);
             Assert(shinDef != null, "Shindengen definition is null");
-            Assert(shinDef.Tables.Count >= 4, "Shindengen definition missing tables");
+            Assert(shinDef.Tables.Count >= 3, "Shindengen definition missing tables");
 
-            // Verify Fuel Table is at 0x3A078 (29x29, 16-bit uint, X/1000)
+            // Verify Fuel Table is at 0x3A078 (35x29, 16-bit uint, X/1000)
             XdfTable fuelTbl = shinDef.Tables[0];
             Assert(fuelTbl.AxisZ.Address == 0x3A078, "Fuel Table address mismatch: " + fuelTbl.AxisZ.Address);
             Assert(fuelTbl.AxisZ.ElementSizeBytes == 2, "Fuel Table element size mismatch: " + fuelTbl.AxisZ.ElementSizeBytes);
-            Assert(fuelTbl.Rows == 29 && fuelTbl.Cols == 29, "Fuel Table dimension mismatch");
+            Assert(fuelTbl.Rows == 35 && fuelTbl.Cols == 29, "Fuel Table dimension mismatch");
 
-            // Verify Ignition Table is at 0x3BA36 (29x29, 8-bit uint, X*0.3572-15.72)
-            XdfTable ignTbl = shinDef.Tables[2];
+            // Verify Ignition Table is at 0x3BA36 (35x29, 8-bit uint, X*0.3572-15.72)
+            XdfTable ignTbl = shinDef.Tables[1];
             Assert(ignTbl.AxisZ.Address == 0x3BA36, "Ignition Table address mismatch: " + ignTbl.AxisZ.Address);
             Assert(ignTbl.AxisZ.ElementSizeBytes == 1, "Ignition Table element size mismatch: " + ignTbl.AxisZ.ElementSizeBytes);
+            Assert(ignTbl.Rows == 35 && ignTbl.Cols == 29, "Ignition Table dimension mismatch");
 
             // Verify Rev Limiter Constants
             Assert(shinDef.Constants.Count >= 5, "Shindengen missing Rev Limiter constants");
