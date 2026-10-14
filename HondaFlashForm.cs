@@ -39,6 +39,8 @@ namespace RemixHondaFlash
         private TabPage tabDiag;
         private TabPage tabTools;
         private TabPage tabDatabase;
+        private Panel pnlNavBar;
+        private List<Button> navButtons = new List<Button>();
 
         // Flasher Tab Controls
         private ComboBox cbPort;
@@ -257,23 +259,34 @@ namespace RemixHondaFlash
                 lblHeaderBadge.Location = new Point(pnlHeader.ClientSize.Width - lblHeaderBadge.Width - 20, 20);
             };
 
-            // 2. Main Tab Control
+            // 2. Custom Dark Motorsport Navigation Bar (Zero WinForms White Tab Bar!)
+            pnlNavBar = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 44,
+                BackColor = Color.FromArgb(14, 18, 27)
+            };
+            this.Controls.Add(pnlNavBar);
+
+            // 3. Main Tab Control (Tabs Hidden to Eliminate White Strip)
             tabControl = new TabControl
             {
                 Dock = DockStyle.Fill,
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
-                Padding = new Point(16, 8)
+                Appearance = TabAppearance.FlatButtons,
+                ItemSize = new Size(0, 1),
+                SizeMode = TabSizeMode.Fixed
             };
             this.Controls.Add(tabControl);
             tabControl.BringToFront();
+            pnlNavBar.BringToFront();
 
-            tabFlasher = new TabPage("ECU FLASHER (แฟลช / ดูดไฟล์)") { BackColor = BgDark };
-            tabMapEditor = new TabPage("MAP STUDIO (ตารางจูน 2D & 3D)") { BackColor = BgDark };
-            tabLiveMonitor = new TabPage("LIVE TELEMETRY (มาตรวัดสด & Data Log)") { BackColor = BgDark };
-            tabQuickTune = new TabPage("QUICK TUNE (สูตรจูนสำเร็จรูป 1-Click)") { BackColor = BgDark };
-            tabDiag = new TabPage("DIAGNOSTICS (อ่านโค้ด & ตรวจระบบ)") { BackColor = BgDark };
-            tabTools = new TabPage("TUNER TOOLS (แปลงไฟล์ & ปลดรหัส)") { BackColor = BgDark };
-            tabDatabase = new TabPage("MODEL DATABASE (ฐานข้อมูล ECM)") { BackColor = BgDark };
+            tabFlasher = new TabPage("ECU FLASHER") { BackColor = BgDark };
+            tabMapEditor = new TabPage("MAP STUDIO") { BackColor = BgDark };
+            tabLiveMonitor = new TabPage("LIVE TELEMETRY") { BackColor = BgDark };
+            tabQuickTune = new TabPage("QUICK TUNE") { BackColor = BgDark };
+            tabDiag = new TabPage("DIAGNOSTICS") { BackColor = BgDark };
+            tabTools = new TabPage("TUNER TOOLS") { BackColor = BgDark };
+            tabDatabase = new TabPage("MODEL DATABASE") { BackColor = BgDark };
 
             tabControl.TabPages.AddRange(new TabPage[] { tabFlasher, tabMapEditor, tabLiveMonitor, tabQuickTune, tabDiag, tabTools, tabDatabase });
 
@@ -285,6 +298,78 @@ namespace RemixHondaFlash
             SetupDiagTab();
             SetupToolsTab();
             SetupDatabaseTab();
+
+            // Build Modern Navigation Buttons
+            string[] navTitles = new string[]
+            {
+                "[FLASHER] แฟลช & ดูดไฟล์",
+                "[MAP STUDIO] ตารางจูน 2D/3D",
+                "[TELEMETRY] มาตรวัดสด & LOG",
+                "[QUICK TUNE] จูนด่วน 1-Click",
+                "[DIAGNOSTICS] ตรวจเช็ค & ลบโค้ด",
+                "[TOOLS] เครื่องมือช่าง",
+                "[DATABASE] ฐานข้อมูล 265+ รุ่น"
+            };
+
+            navButtons.Clear();
+            int navX = 8;
+            for (int i = 0; i < navTitles.Length; i++)
+            {
+                int tabIdx = i;
+                Button btnNav = new Button
+                {
+                    Text = navTitles[i],
+                    Location = new Point(navX, 4),
+                    Height = 36,
+                    AutoSize = true,
+                    Padding = new Padding(12, 0, 12, 0),
+                    FlatStyle = FlatStyle.Flat,
+                    Cursor = Cursors.Hand,
+                    Font = new Font("Segoe UI", 8.75F, FontStyle.Bold)
+                };
+                btnNav.FlatAppearance.BorderSize = 0;
+                btnNav.FlatAppearance.MouseOverBackColor = Color.FromArgb(24, 32, 48);
+
+                btnNav.Paint += (s, e) =>
+                {
+                    Button b = (Button)s;
+                    if (tabControl.SelectedIndex == tabIdx)
+                    {
+                        using (Brush brush = new SolidBrush(AccentCyan))
+                        {
+                            e.Graphics.FillRectangle(brush, 4, b.Height - 3, b.Width - 8, 3);
+                        }
+                    }
+                };
+
+                btnNav.Click += (s, e) => { SelectNavTab(tabIdx); };
+                pnlNavBar.Controls.Add(btnNav);
+                navButtons.Add(btnNav);
+                navX += btnNav.PreferredSize.Width + 4;
+            }
+
+            pnlNavBar.Paint += (s, e) =>
+            {
+                using (Pen borderPen = new Pen(Color.FromArgb(28, 38, 54), 1))
+                {
+                    e.Graphics.DrawLine(borderPen, 0, pnlNavBar.Height - 1, pnlNavBar.Width, pnlNavBar.Height - 1);
+                }
+            };
+
+            SelectNavTab(0);
+        }
+
+        private void SelectNavTab(int index)
+        {
+            if (index < 0 || index >= tabControl.TabPages.Count) return;
+            tabControl.SelectedIndex = index;
+            for (int i = 0; i < navButtons.Count; i++)
+            {
+                bool active = (i == index);
+                navButtons[i].ForeColor = active ? AccentCyan : Color.FromArgb(145, 158, 175);
+                navButtons[i].BackColor = active ? Color.FromArgb(20, 28, 42) : Color.Transparent;
+                navButtons[i].Invalidate();
+            }
         }
 
         #region Tab 1: Flasher Tab Setup
@@ -321,12 +406,28 @@ namespace RemixHondaFlash
 
             // Line 2: Dual Status Displays (USB Cable Status vs ECM Vehicle Status)
             pnlUsbIndicator = new Panel { Location = new Point(16, 59), Size = new Size(12, 12), BackColor = AccentRed };
+            pnlUsbIndicator.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                using (Brush b = new SolidBrush(pnlUsbIndicator.BackColor))
+                {
+                    e.Graphics.FillEllipse(b, 0, 0, 11, 11);
+                }
+            };
             pnlConn.Controls.Add(pnlUsbIndicator);
 
             lblUsbStatus = new Label { Text = "สาย USB: กำลังตรวจจับ...", Location = new Point(34, 56), Size = new Size(420, 18), ForeColor = AccentRed, Font = new Font("Segoe UI", 8.5F, FontStyle.Bold) };
             pnlConn.Controls.Add(lblUsbStatus);
 
             pnlEcmIndicator = new Panel { Location = new Point(480, 59), Size = new Size(12, 12), BackColor = Color.FromArgb(120, 120, 120) };
+            pnlEcmIndicator.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                using (Brush b = new SolidBrush(pnlEcmIndicator.BackColor))
+                {
+                    e.Graphics.FillEllipse(b, 0, 0, 11, 11);
+                }
+            };
             pnlConn.Controls.Add(pnlEcmIndicator);
 
             lblEcmStatus = new Label { Text = "กล่อง ECM: ยังไม่เชื่อมต่อ", Location = new Point(498, 56), Size = new Size(420, 18), ForeColor = TextMuted, Font = new Font("Segoe UI", 8.5F, FontStyle.Bold) };
@@ -1781,17 +1882,29 @@ namespace RemixHondaFlash
             {
                 Location = new Point(x, y),
                 Size = new Size(width, height),
-                BackColor = CardBg,
+                BackColor = Color.FromArgb(17, 23, 34),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+
+            card.Paint += (s, e) =>
+            {
+                using (Pen borderPen = new Pen(Color.FromArgb(32, 44, 64), 1))
+                {
+                    e.Graphics.DrawRectangle(borderPen, 0, 0, card.Width - 1, card.Height - 1);
+                }
+                using (Brush accentBrush = new SolidBrush(Color.FromArgb(0, 229, 255)))
+                {
+                    e.Graphics.FillRectangle(accentBrush, 0, 0, 28, 2);
+                }
             };
 
             Label lblTitle = new Label
             {
-                Text = title,
-                Location = new Point(12, 6),
+                Text = title.ToUpperInvariant(),
+                Location = new Point(14, 7),
                 AutoSize = true,
-                ForeColor = AccentBlue,
-                Font = new Font("Segoe UI", 8.5F, FontStyle.Bold)
+                ForeColor = Color.FromArgb(88, 166, 255),
+                Font = new Font("Segoe UI", 8.25F, FontStyle.Bold)
             };
             card.Controls.Add(lblTitle);
             return card;
@@ -1799,7 +1912,7 @@ namespace RemixHondaFlash
 
         private Button CreateStyledButton(string text, int x, int y, int w, int h, Color bg, Color fg, bool bold = false)
         {
-            return new Button
+            Button btn = new Button
             {
                 Text = text,
                 Location = new Point(x, y),
@@ -1807,9 +1920,12 @@ namespace RemixHondaFlash
                 BackColor = bg,
                 ForeColor = fg,
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9F, bold ? FontStyle.Bold : FontStyle.Regular),
+                Font = new Font("Segoe UI", 8.75F, bold ? FontStyle.Bold : FontStyle.Regular),
                 Cursor = Cursors.Hand
             };
+            btn.FlatAppearance.BorderSize = 1;
+            btn.FlatAppearance.BorderColor = Color.FromArgb(Math.Min(255, bg.R + 25), Math.Min(255, bg.G + 25), Math.Min(255, bg.B + 25));
+            return btn;
         }
 
         private void LogMessage(string msg)
