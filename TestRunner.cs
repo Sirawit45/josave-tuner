@@ -55,6 +55,13 @@ namespace RemixHondaFlash
             RunTest("Tools: TunerPro XDF/ADX Password Cleaner", TestTunerProUnlocker);
             RunTest("Tools: Encrypted ACG / ECU Decryption Engine", TestAcgEcuConverter);
 
+            // 8. One-Click Tuning & Live Telemetry Studio Tests
+            RunTest("Tuner Engine: Idle Chop Mod (สูตรเดินหอบ) & Auto Checksum", TestIdleChopMod);
+            RunTest("Tuner Engine: RPM Limiter Patcher (สูตรปลดรอบ) & Auto Checksum", TestRevLimiterPatch);
+            RunTest("Tuner Engine: Stage 1/2/3 Quick Remap & Auto Checksum", TestStageQuickTune);
+            RunTest("Live Telemetry: High-Speed K-Line Stream & CSV Logger", TestLiveTelemetryAndLogger);
+            RunTest("Diagnostics: Actuator Tests & Pre-Flash Safety Check", TestActuatorsAndPreFlashCheck);
+
             totalSw.Stop();
 
             Console.WriteLine("\n===============================================================================");
@@ -439,6 +446,122 @@ namespace RemixHondaFlash
             Assert(decrypted[0] == 0x00 && decrypted[1] == 0x11 && decrypted[23] == 0x08, "Decrypted content mismatch");
 
             File.Delete(tempEcu);
+        }
+
+        private static void TestIdleChopMod()
+        {
+            byte[] baseBin = new byte[0x10000];
+            for (int i = 0; i < baseBin.Length; i++) baseBin[i] = (byte)(i & 0xFF);
+            ChecksumEngine.FixKeihinChecksum(baseBin, 0x7600);
+
+            byte[] modBin;
+            string status;
+            bool ok = OneClickTunerEngine.ApplyIdleChopMod(baseBin, EcuType.KeihinOther, 2, out modBin, out status);
+            Assert(ok, "ApplyIdleChopMod failed");
+            Assert(modBin != null && modBin.Length == baseBin.Length, "Modified BIN length mismatch");
+            Assert(status.Contains("สำเร็จ"), "Status does not confirm success");
+
+            byte sum = ChecksumEngine.Sum8Bit(modBin, modBin.Length, 0);
+            Assert(sum == 0, string.Format("Keihin checksum invalid after idle chop mod (sum={0})", sum));
+        }
+
+        private static void TestRevLimiterPatch()
+        {
+            byte[] baseBin = new byte[0x10000];
+            for (int i = 0; i < baseBin.Length; i++) baseBin[i] = (byte)(i & 0xFF);
+            baseBin[0x6200] = 0x1C;
+            baseBin[0x6201] = 0x25;
+            ChecksumEngine.FixKeihinChecksum(baseBin, 0x7600);
+
+            byte[] modBin;
+            string status;
+            bool ok = OneClickTunerEngine.ApplyRpmLimiterPatch(baseBin, EcuType.KeihinOther, 11500, out modBin, out status);
+            Assert(ok, "ApplyRpmLimiterPatch failed");
+            Assert(status.Contains("11,500"), "Status does not mention target RPM");
+
+            Assert(modBin[0x6200] == 0xEC && modBin[0x6201] == 0x2C, "Rev limiter value not patched to 11500 RPM");
+
+            byte sum = ChecksumEngine.Sum8Bit(modBin, modBin.Length, 0);
+            Assert(sum == 0, string.Format("Keihin checksum invalid after rev limit patch (sum={0})", sum));
+        }
+
+        private static void TestStageQuickTune()
+        {
+            byte[] baseBin = new byte[0x10000];
+            for (int i = 0; i < baseBin.Length; i++) baseBin[i] = 100;
+            ChecksumEngine.FixKeihinChecksum(baseBin, 0x7600);
+
+            byte[] modBin;
+            string status;
+            bool ok = OneClickTunerEngine.ApplyStageQuickTune(baseBin, EcuType.KeihinOther, 1, out modBin, out status);
+            Assert(ok, "ApplyStageQuickTune failed");
+            Assert(status.Contains("สเต็ป 1"), "Status does not mention Stage 1");
+
+            byte sum = ChecksumEngine.Sum8Bit(modBin, modBin.Length, 0);
+            Assert(sum == 0, string.Format("Keihin checksum invalid after stage tune (sum={0})", sum));
+        }
+
+        private static void TestLiveTelemetryAndLogger()
+        {
+            using (VirtualKLinePort port = new VirtualKLinePort(EcuVendor.Shindengen, 512))
+            using (HondaKLineEngine engine = new HondaKLineEngine(port))
+            {
+                engine.Connect();
+
+                LiveTelemetryData live;
+                bool ok = engine.QueryLiveTelemetry(out live);
+                Assert(ok, "QueryLiveTelemetry failed");
+                Assert(live.EngineRpm > 1000 && live.EngineRpm < 2000, "Simulated RPM out of expected range");
+                Assert(live.BatteryVolts >= 13.0 && live.BatteryVolts <= 15.0, "Battery voltage out of range");
+                Assert(live.AirFuelRatio >= 14.0 && live.AirFuelRatio <= 16.0, "AFR out of range");
+
+                string tempCsv = Path.Combine(Path.GetTempPath(), "test_telemetry.csv");
+                using (TelemetryDataLogger logger = new TelemetryDataLogger())
+                {
+                    logger.StartLogging(tempCsv);
+                    Assert(logger.IsLogging, "Logger failed to start");
+                    for (int i = 0; i < 5; i++)
+                    {
+                        engine.QueryLiveTelemetry(out live);
+                        logger.LogData(live);
+                    }
+                    Assert(logger.RowCount == 5, "Row count mismatch");
+                    logger.StopLogging();
+                }
+
+                Assert(File.Exists(tempCsv), "CSV file was not created");
+                string[] lines = File.ReadAllLines(tempCsv);
+                Assert(lines.Length == 6, "CSV line count mismatch (header + 5 data rows)");
+                Assert(lines[0].Contains("EngineRPM"), "CSV header missing EngineRPM");
+                File.Delete(tempCsv);
+            }
+        }
+
+        private static void TestActuatorsAndPreFlashCheck()
+        {
+            using (VirtualKLinePort port = new VirtualKLinePort(EcuVendor.Shindengen, 512))
+            using (HondaKLineEngine engine = new HondaKLineEngine(port))
+            {
+                engine.Connect();
+
+                string msg;
+                bool injOk = engine.ExecuteActuatorTest(ActuatorType.FuelInjector, out msg);
+                Assert(injOk, "Fuel Injector test failed");
+                Assert(msg.Contains("หัวฉีด"), "Injector test message mismatch");
+
+                bool pumpOk = engine.ExecuteActuatorTest(ActuatorType.FuelPump, out msg);
+                Assert(pumpOk, "Fuel Pump test failed");
+
+                bool tachoOk = engine.ExecuteActuatorTest(ActuatorType.TachometerSweep, out msg);
+                Assert(tachoOk, "Tachometer Sweep test failed");
+
+                bool sparkOk = engine.ExecuteActuatorTest(ActuatorType.IgnitionSparkCoil, out msg);
+                Assert(sparkOk, "Spark test failed");
+
+                var check = engine.PerformPreFlashSafetyCheck();
+                Assert(check != null, "PreFlashCheck returned null");
+                Assert(check.CheckMessages.Count > 0, "PreFlashCheck messages empty");
+            }
         }
 
         #endregion

@@ -92,3 +92,60 @@ This skill contains deep domain knowledge for communicating with, dumping (readi
   - Keihin Read Header: `0x7D` (Reply Header `0x7E`)
   - Shindengen Read Header: `0x7B` (Reply Header `0x7C`)
 - **Verification**: Always compute file hash and verify against checksum table before and after operations.
+
+---
+
+## 7. Real-Time Telemetry & K-Line Live Data Stream
+
+- **Query Table `00 00`**: `72 07 72 00 00 0D [Checksum]`
+- **Telemetry Packet Decoding**:
+  - **Engine RPM**: `(Byte[5] << 8) | Byte[6]`
+  - **Throttle Position (TPS %)**: `Byte[7] * 100.0 / 255.0`
+  - **Throttle Voltage**: `Byte[8] * 5.0 / 255.0` V
+  - **Engine Oil / Coolant Temp (EOT/ECT)**: `Byte[9] - 40` °C
+  - **Manifold Absolute Pressure (MAP)**: `Byte[10]` kPa
+  - **Intake Air Temperature (IAT)**: `Byte[11] - 40` °C
+  - **Battery Voltage**: `Byte[12] * 0.1` V (Safe threshold: $\ge 12.0\text{V}$, charging: $13.8 - 14.4\text{V}$)
+  - **Fuel Injector Pulse Width**: `((Byte[13] << 8) | Byte[14]) / 1000.0` ms
+  - **Ignition Advance (°BTDC)**: `(Byte[15] - 60) / 2.0`
+  - **O2 Sensor & Air-Fuel Ratio (AFR)**: `14.7 + (Byte[16] - 128) * 0.03`
+  - **Neutral Switch**: `(Byte[17] & 0x01) != 0`
+  - **Current Gear**: `(Byte[17] >> 1) & 0x07`
+
+---
+
+## 8. Active Actuator Component Testing
+
+- **Command Format**: `72 05 60 [ActuatorID] [Checksum]`
+  - `0x05`: Fuel Injector Pulse Test (clicks injector 5 times)
+  - `0x06`: Fuel Pump Relay Test (primes pump for 3 seconds)
+  - `0x07`: Tachometer Needle Sweep Test (sweeps instrument cluster)
+  - `0x08`: Ignition Spark Coil Test (fires spark plug 3 times)
+  - `0x04`: Throttle Position (TP) Sensor Calibration Reset
+
+---
+
+## 9. Thai Motorcycle Remapping Mechanics (สูตรเดินหอบ & ปลดรอบ)
+
+### Idle Chop ("สูตรเดินหอบ" / Lope Cam Sound Mod)
+- **Concept**: Emulates an aggressive high-overlap racing camshaft lope at 1,200 - 1,800 RPM closed throttle.
+- **Implementation**:
+  - Alternating spark retard ($-4^\circ$ to $0^\circ$) and advance ($+18^\circ$ to $+22^\circ$) on adjacent idle timing table cells.
+  - Periodic fuel enrichment pulses ($+8\%$ to $+16\%$) to cause controlled combustion stumble and throatiness.
+  - Requires automatic recalculation of Keihin 8-bit sum or Shindengen 32-bit checksum.
+
+### RPM Limiter Modifier ("สูตรปลดรอบ / เปิดรอบ")
+- **Stock Limit**: Factory rev limiters typically set at $9,200 - 9,800\text{ RPM}$.
+- **Target Limit**: $10,000 - 13,000\text{ RPM}$ depending on valve springs and camshaft profile.
+- **Search Signature**: 16-bit little-endian and big-endian words corresponding to factory thresholds (e.g. $9500 = \text{0x251C}$, $9800 = \text{0x2648}$).
+- **Patch Rule**: Overwrite limiter word with target value, then perform auto checksum correction.
+
+---
+
+## 10. Pre-Flash Safety Checklist & Risk Prevention
+
+1. **Battery Voltage**: Must be $\ge 12.0\text{V}$ (warn user if $< 12.0\text{V}$ to prevent ECM brownout/bricking).
+2. **Throttle Closed**: Must be $0.0^\circ$ ($< 0.5\text{V}$).
+3. **DTC Diagnostic Faults**: Verify 0 active faults before flashing.
+4. **Hardware Cable Link**: Real-time USB Hot-Plug detection (FTDI D2XX + COM).
+

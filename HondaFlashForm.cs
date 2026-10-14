@@ -30,6 +30,8 @@ namespace RemixHondaFlash
         // Tabs
         private TabControl tabControl;
         private TabPage tabFlasher;
+        private TabPage tabLiveMonitor;
+        private TabPage tabQuickTune;
         private TabPage tabDiag;
         private TabPage tabTools;
         private TabPage tabDatabase;
@@ -66,10 +68,52 @@ namespace RemixHondaFlash
         private Label lblSpeedText;
         private TextBox txtFlasherLog;
 
+        // Live Monitor Tab Controls
+        private Label lblRpmVal;
+        private Label lblTpsVal;
+        private Label lblEotVal;
+        private Label lblMapVal;
+        private Label lblIatVal;
+        private Label lblBattVal;
+        private Label lblInjVal;
+        private Label lblAdvVal;
+        private Label lblAfrVal;
+        private Button btnStartMonitor;
+        private Button btnPauseMonitor;
+        private Button btnRecordCsv;
+        private Label lblRecordStatus;
+        private Panel pnlWaveform;
+        private System.Windows.Forms.Timer tmrTelemetry;
+        private List<int> rpmHistory = new List<int>();
+        private List<int> tpsHistory = new List<int>();
+        private TelemetryDataLogger dataLogger = new TelemetryDataLogger();
+        private bool isTelemetryRunning = false;
+
+        // Quick Tune Tab Controls
+        private Label lblQuickRomInfo;
+        private ComboBox cbIdleChopLevel;
+        private Button btnApplyIdleChop;
+        private Label lblIdleChopResult;
+        private ComboBox cbRevLimit;
+        private Button btnApplyRevLimit;
+        private Label lblRevLimitResult;
+        private ComboBox cbStageTune;
+        private Button btnApplyStageTune;
+        private Label lblStageTuneResult;
+
         // Diagnostic Tab Controls
+        private Button btnPreFlashCheck;
+        private TextBox txtPreFlashStatus;
+        private Button btnReadDtc;
         private Button btnClearDtc;
+        private Button btnResetTp;
         private Button btnResetEcm;
         private Button btnResetFlashCount;
+        private Button btnTestInjector;
+        private Button btnTestFuelPump;
+        private Button btnTestTacho;
+        private Button btnTestSpark;
+        private Label lblActuatorResult;
         private TextBox txtLog;
 
         // Tools Tab Controls
@@ -201,14 +245,18 @@ namespace RemixHondaFlash
             tabControl.BringToFront();
 
             tabFlasher = new TabPage("⚡ ECU Flasher (หน้าหลัก แฟลช / ดูดไฟล์)") { BackColor = BgDark };
-            tabDiag = new TabPage("🔧 Diagnostics (วิเคราะห์ & รีเซ็ต)") { BackColor = BgDark };
+            tabLiveMonitor = new TabPage("📊 Live Monitor (มาตรวัดสด & บันทึก Log)") { BackColor = BgDark };
+            tabQuickTune = new TabPage("🚀 สูตรจูนด่วน 1-Click (เดินหอบ & ปลดรอบ)") { BackColor = BgDark };
+            tabDiag = new TabPage("🔧 Diagnostics & Tests (วิเคราะห์ & สั่งงาน)") { BackColor = BgDark };
             tabTools = new TabPage("🛠 Tuner Tools (เครื่องมือช่างจูน)") { BackColor = BgDark };
             tabDatabase = new TabPage("📚 Model Database (ฐานข้อมูล 265+ รุ่น)") { BackColor = BgDark };
 
-            tabControl.TabPages.AddRange(new TabPage[] { tabFlasher, tabDiag, tabTools, tabDatabase });
+            tabControl.TabPages.AddRange(new TabPage[] { tabFlasher, tabLiveMonitor, tabQuickTune, tabDiag, tabTools, tabDatabase });
 
             // Setup each tab
             SetupFlasherTab();
+            SetupLiveMonitorTab();
+            SetupQuickTuneTab();
             SetupDiagTab();
             SetupToolsTab();
             SetupDatabaseTab();
@@ -414,34 +462,437 @@ namespace RemixHondaFlash
 
         #endregion
 
-        #region Tab 2: Diagnostics Setup
+        #region Tab 2: Live Monitor Setup
+
+        private void SetupLiveMonitorTab()
+        {
+            int w = tabLiveMonitor.ClientSize.Width > 0 ? tabLiveMonitor.ClientSize.Width - 32 : 930;
+
+            // 1. Top Control Bar (Start, Pause, Record, Status)
+            Panel pnlMonitorBar = CreateCardPanel(16, 12, w, 68, "ระบบควบคุมมาตรวัดสดและการบันทึกข้อมูล (Live Telemetry Controls)");
+            tabLiveMonitor.Controls.Add(pnlMonitorBar);
+
+            btnStartMonitor = CreateStyledButton("▶ เริ่มอ่านค่าสด (Start)", 16, 24, 155, 32, AccentGreen, Color.Black, true);
+            btnStartMonitor.Click += BtnStartMonitor_Click;
+            pnlMonitorBar.Controls.Add(btnStartMonitor);
+
+            btnPauseMonitor = CreateStyledButton("⏸ หยุดชั่วคราว (Pause)", 178, 24, 155, 32, CardHeaderBg, TextWhite, false);
+            btnPauseMonitor.Click += BtnPauseMonitor_Click;
+            pnlMonitorBar.Controls.Add(btnPauseMonitor);
+
+            btnRecordCsv = CreateStyledButton("⏺ บันทึก Log เป็น CSV", 340, 24, 175, 32, AccentBlue, Color.White, true);
+            btnRecordCsv.Click += BtnRecordCsv_Click;
+            pnlMonitorBar.Controls.Add(btnRecordCsv);
+
+            lblRecordStatus = new Label
+            {
+                Text = "สถานะ: พร้อมอ่านค่าจากสาย K-Line",
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                ForeColor = TextMuted,
+                Location = new Point(525, 31),
+                AutoSize = true
+            };
+            pnlMonitorBar.Controls.Add(lblRecordStatus);
+
+            // 2. Gauges & Digital Tiles Card
+            Panel pnlGauges = CreateCardPanel(16, 86, w, 280, "หน้าปัดเกจวัดดิจิทัลความเร็วสูง (High-Speed Digital Cockpit)");
+            tabLiveMonitor.Controls.Add(pnlGauges);
+
+            int tileW = 168;
+            int tileH = 110;
+            int gapX = 14;
+            int gapY = 14;
+            int startX = 16;
+            int startY = 28;
+
+            // Tile 1: RPM (Double width)
+            Panel pnlRpm = CreateGaugeTile(startX, startY, tileW * 2 + gapX, tileH, "รอบเครื่องยนต์ (ENGINE RPM)", AccentBlue);
+            lblRpmVal = new Label
+            {
+                Text = "0 RPM",
+                Font = new Font("Segoe UI", 26F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(0, 229, 255),
+                Location = new Point(12, 32),
+                AutoSize = true
+            };
+            pnlRpm.Controls.Add(lblRpmVal);
+            pnlGauges.Controls.Add(pnlRpm);
+
+            // Tile 2: TPS
+            Panel pnlTps = CreateGaugeTile(startX + (tileW * 2 + gapX) + gapX, startY, tileW, tileH, "องศาลิ้นเร่ง (TPS)", AccentGreen);
+            lblTpsVal = new Label { Text = "0.0 %", Font = new Font("Segoe UI", 18F, FontStyle.Bold), ForeColor = AccentGreen, Location = new Point(10, 36), AutoSize = true };
+            pnlTps.Controls.Add(lblTpsVal);
+            pnlGauges.Controls.Add(pnlTps);
+
+            // Tile 3: ECT / EOT
+            Panel pnlEot = CreateGaugeTile(startX + (tileW * 3 + gapX * 2) + gapX, startY, tileW, tileH, "อุณหภูมิเครื่อง (EOT)", Color.FromArgb(255, 145, 0));
+            lblEotVal = new Label { Text = "0.0 °C", Font = new Font("Segoe UI", 18F, FontStyle.Bold), ForeColor = Color.FromArgb(255, 171, 0), Location = new Point(10, 36), AutoSize = true };
+            pnlEot.Controls.Add(lblEotVal);
+            pnlGauges.Controls.Add(pnlEot);
+
+            // Tile 4: Battery Voltage
+            Panel pnlBatt = CreateGaugeTile(startX + (tileW * 4 + gapX * 3) + gapX, startY, tileW, tileH, "แรงดันแบตเตอรี่ (BATT)", AccentGreen);
+            lblBattVal = new Label { Text = "0.0 V", Font = new Font("Segoe UI", 18F, FontStyle.Bold), ForeColor = AccentGreen, Location = new Point(10, 36), AutoSize = true };
+            pnlBatt.Controls.Add(lblBattVal);
+            pnlGauges.Controls.Add(pnlBatt);
+
+            // Row 2:
+            int r2Y = startY + tileH + gapY;
+
+            // Tile 5: MAP
+            Panel pnlMap = CreateGaugeTile(startX, r2Y, tileW, tileH, "แรงดันไอดี (MAP)", AccentPurple);
+            lblMapVal = new Label { Text = "0 kPa", Font = new Font("Segoe UI", 18F, FontStyle.Bold), ForeColor = AccentPurple, Location = new Point(10, 36), AutoSize = true };
+            pnlMap.Controls.Add(lblMapVal);
+            pnlGauges.Controls.Add(pnlMap);
+
+            // Tile 6: IAT
+            Panel pnlIat = CreateGaugeTile(startX + tileW + gapX, r2Y, tileW, tileH, "อุณหภูมิไอดี (IAT)", Color.FromArgb(128, 222, 234));
+            lblIatVal = new Label { Text = "0.0 °C", Font = new Font("Segoe UI", 18F, FontStyle.Bold), ForeColor = Color.FromArgb(128, 222, 234), Location = new Point(10, 36), AutoSize = true };
+            pnlIat.Controls.Add(lblIatVal);
+            pnlGauges.Controls.Add(pnlIat);
+
+            // Tile 7: Injector Duration
+            Panel pnlInj = CreateGaugeTile(startX + (tileW + gapX) * 2, r2Y, tileW, tileH, "ระยะยกหัวฉีด (INJ)", Color.FromArgb(255, 171, 145));
+            lblInjVal = new Label { Text = "0.00 ms", Font = new Font("Segoe UI", 18F, FontStyle.Bold), ForeColor = Color.FromArgb(255, 171, 145), Location = new Point(10, 36), AutoSize = true };
+            pnlInj.Controls.Add(lblInjVal);
+            pnlGauges.Controls.Add(pnlInj);
+
+            // Tile 8: Spark Advance
+            Panel pnlAdv = CreateGaugeTile(startX + (tileW + gapX) * 3, r2Y, tileW, tileH, "องศาไฟจุดระเบิด (ADV)", Color.FromArgb(255, 238, 88));
+            lblAdvVal = new Label { Text = "0.0° BTDC", Font = new Font("Segoe UI", 18F, FontStyle.Bold), ForeColor = Color.FromArgb(255, 238, 88), Location = new Point(10, 36), AutoSize = true };
+            pnlAdv.Controls.Add(lblAdvVal);
+            pnlGauges.Controls.Add(pnlAdv);
+
+            // Tile 9: O2 / AFR
+            Panel pnlAfr = CreateGaugeTile(startX + (tileW + gapX) * 4, r2Y, tileW, tileH, "อัตราส่วนผสม (AFR)", Color.FromArgb(0, 230, 118));
+            lblAfrVal = new Label { Text = "14.7 AFR", Font = new Font("Segoe UI", 18F, FontStyle.Bold), ForeColor = AccentGreen, Location = new Point(10, 36), AutoSize = true };
+            pnlAfr.Controls.Add(lblAfrVal);
+            pnlGauges.Controls.Add(pnlAfr);
+
+            // 3. Real-time Telemetry Waveform Strip
+            int waveH = Math.Max(160, tabLiveMonitor.ClientSize.Height - 380);
+            Panel pnlWaveBox = CreateCardPanel(16, 374, w, waveH, "กราฟคลื่นสัญญาณสด (Real-time Telemetry Waveform: Cyan=RPM, Green=TPS)");
+            tabLiveMonitor.Controls.Add(pnlWaveBox);
+
+            pnlWaveform = new Panel
+            {
+                Location = new Point(16, 26),
+                Size = new Size(Math.Max(100, pnlWaveBox.ClientSize.Width - 32), Math.Max(80, pnlWaveBox.ClientSize.Height - 36)),
+                BackColor = Color.FromArgb(10, 14, 20),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            pnlWaveform.Paint += PnlWaveform_Paint;
+            pnlWaveBox.Controls.Add(pnlWaveform);
+
+            pnlWaveBox.Resize += (s, e) =>
+            {
+                pnlWaveform.Width = Math.Max(100, pnlWaveBox.ClientSize.Width - 32);
+                pnlWaveform.Height = Math.Max(80, pnlWaveBox.ClientSize.Height - 36);
+            };
+
+            tabLiveMonitor.Resize += (s, e) =>
+            {
+                int cardW = Math.Max(200, tabLiveMonitor.ClientSize.Width - 32);
+                pnlMonitorBar.Width = cardW;
+                pnlGauges.Width = cardW;
+                pnlWaveBox.Width = cardW;
+                pnlWaveBox.Height = Math.Max(140, tabLiveMonitor.ClientSize.Height - 380);
+            };
+
+            // Setup Timer
+            tmrTelemetry = new System.Windows.Forms.Timer();
+            tmrTelemetry.Interval = 100;
+            tmrTelemetry.Tick += TmrTelemetry_Tick;
+        }
+
+        private Panel CreateGaugeTile(int x, int y, int w, int h, string title, Color accent)
+        {
+            Panel tile = new Panel
+            {
+                Location = new Point(x, y),
+                Size = new Size(w, h),
+                BackColor = CardHeaderBg,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            Label lbl = new Label
+            {
+                Text = title,
+                Font = new Font("Segoe UI", 7.5F, FontStyle.Bold),
+                ForeColor = accent,
+                Location = new Point(8, 8),
+                AutoSize = true
+            };
+            tile.Controls.Add(lbl);
+            return tile;
+        }
+
+        #endregion
+
+        #region Tab 3: Quick Tune Setup
+
+        private void SetupQuickTuneTab()
+        {
+            int w = tabQuickTune.ClientSize.Width > 0 ? tabQuickTune.ClientSize.Width - 32 : 930;
+
+            Panel pnlRom = CreateCardPanel(16, 12, w, 70, "ไฟล์ ROM ที่กำลังปรับแต่ง (Active ROM Target)");
+            tabQuickTune.Controls.Add(pnlRom);
+
+            lblQuickRomInfo = new Label
+            {
+                Text = "ยังไม่ได้เปิดไฟล์ ROM (กรุณาเลือกไฟล์ในแท็บ Flasher หรือเปิดไฟล์ .bin)",
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = AccentRed,
+                Location = new Point(16, 28),
+                AutoSize = true
+            };
+            pnlRom.Controls.Add(lblQuickRomInfo);
+
+            Panel pnlChop = CreateCardPanel(16, 90, w, 150, "1. สูตรเดินหอบ (Thai Idle Chop / Lope Cam Sound Generator)");
+            tabQuickTune.Controls.Add(pnlChop);
+
+            Label lblChopDesc = new Label
+            {
+                Text = "ปรับแต่งจังหวะการจุดระเบิด (Ignition Advance) และการชดเชยน้ำมันรอบเดินเบา เพื่อให้เสียงท่อไอเสียเดินหอบดุดันสไตล์แคมซิ่ง\nระบบจะคำนวณ Checksum อัตโนมัติและสร้างไฟล์ใหม่พร้อมอัดลงกล่องได้ทันที",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                ForeColor = TextMuted,
+                Location = new Point(16, 26),
+                Size = new Size(Math.Max(100, pnlChop.ClientSize.Width - 32), 34)
+            };
+            pnlChop.Controls.Add(lblChopDesc);
+
+            Label lblChopLvl = new Label { Text = "ระดับความหอบ:", Location = new Point(16, 68), AutoSize = true, ForeColor = TextWhite };
+            pnlChop.Controls.Add(lblChopLvl);
+
+            cbIdleChopLevel = new ComboBox
+            {
+                Location = new Point(120, 65),
+                Size = new Size(260, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                BackColor = CardHeaderBg,
+                ForeColor = TextWhite,
+                FlatStyle = FlatStyle.Flat
+            };
+            cbIdleChopLevel.Items.Add("ระดับ 1: เดินหอบนุ่มนวล (Mild Lope Sound)");
+            cbIdleChopLevel.Items.Add("ระดับ 2: เดินหอบลั่นดุดัน (Aggressive Cam Chop)");
+            cbIdleChopLevel.SelectedIndex = 1;
+            pnlChop.Controls.Add(cbIdleChopLevel);
+
+            btnApplyIdleChop = CreateStyledButton("⚡ ใส่สูตรเดินหอบลงในไฟล์ (Apply Idle Chop)", 390, 63, 290, 30, Color.FromArgb(255, 109, 0), Color.White, true);
+            btnApplyIdleChop.Click += BtnApplyIdleChop_Click;
+            pnlChop.Controls.Add(btnApplyIdleChop);
+
+            lblIdleChopResult = new Label
+            {
+                Text = "สถานะ: พร้อมใช้งาน (เลือกไฟล์แล้วกดปุ่มใส่สูตร)",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                ForeColor = TextMuted,
+                Location = new Point(16, 106),
+                AutoSize = true
+            };
+            pnlChop.Controls.Add(lblIdleChopResult);
+
+            Panel pnlRev = CreateCardPanel(16, 248, w, 150, "2. ปลดรอบ / ปรับรอบตัดเครื่องยนต์ (RPM Limiter Modifier)");
+            tabQuickTune.Controls.Add(pnlRev);
+
+            Label lblRevDesc = new Label
+            {
+                Text = "ค้นหาจุดตัดรอบเครื่องยนต์ (Stock Rev Limiter 9,200 - 9,800 RPM) และปรับเพิ่มความเร็วรอบตามต้องการ\nปลดล็อคความเร็วปลายของรถมอเตอร์ไซค์ พร้อมแก้ไข Checksum ให้อัตโนมัติ",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                ForeColor = TextMuted,
+                Location = new Point(16, 26),
+                Size = new Size(Math.Max(100, pnlRev.ClientSize.Width - 32), 34)
+            };
+            pnlRev.Controls.Add(lblRevDesc);
+
+            Label lblRevTgt = new Label { Text = "เลือกรอบตัดที่ต้องการ:", Location = new Point(16, 68), AutoSize = true, ForeColor = TextWhite };
+            pnlRev.Controls.Add(lblRevTgt);
+
+            cbRevLimit = new ComboBox
+            {
+                Location = new Point(155, 65),
+                Size = new Size(225, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                BackColor = CardHeaderBg,
+                ForeColor = TextWhite,
+                FlatStyle = FlatStyle.Flat
+            };
+            cbRevLimit.Items.AddRange(new object[] {
+                "10,000 RPM (ปลอดภัย สเต็ปเดิม)",
+                "10,500 RPM (ยอดนิยม Wave / PCX / Click)",
+                "11,000 RPM (สเต็ปไล่ข้าง / ชามแต่ง)",
+                "11,500 RPM (สเต็ปท่อกรอง)",
+                "12,000 RPM (สเต็ปแคมซิ่ง / ลูกโต)",
+                "12,500 RPM (สเต็ปโมดิฟายเต็มระบบ)",
+                "13,000 RPM (สเต็ปแข่งขัน Drag Race)"
+            });
+            cbRevLimit.SelectedIndex = 1;
+            pnlRev.Controls.Add(cbRevLimit);
+
+            btnApplyRevLimit = CreateStyledButton("⚡ ปลดรอบเครื่องยนต์ (Patch Limiter)", 390, 63, 290, 30, AccentBlue, Color.White, true);
+            btnApplyRevLimit.Click += BtnApplyRevLimit_Click;
+            pnlRev.Controls.Add(btnApplyRevLimit);
+
+            lblRevLimitResult = new Label
+            {
+                Text = "สถานะ: พร้อมใช้งาน (เลือกรอบที่ต้องการแล้วกดปลดรอบ)",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                ForeColor = TextMuted,
+                Location = new Point(16, 106),
+                AutoSize = true
+            };
+            pnlRev.Controls.Add(lblRevLimitResult);
+
+            Panel pnlStage = CreateCardPanel(16, 406, w, 150, "3. สูตรสเต็ปรถสำเร็จรูป (Quick Stage Presets)");
+            tabQuickTune.Controls.Add(pnlStage);
+
+            Label lblStageDesc = new Label
+            {
+                Text = "ปรับชดเชยน้ำมันเชื้อเพลิง (Fuel Trim) และองศาไฟจุดระเบิด (Spark Advance) ตามสเต็ปการตกแต่งเครื่องยนต์\nช่วยแก้ปัญหาน้ำมันบาง ปรับคันเร่งให้ตอบสนองไวขึ้น บิดติดมือรอบต้นและรอบปลาย",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                ForeColor = TextMuted,
+                Location = new Point(16, 26),
+                Size = new Size(Math.Max(100, pnlStage.ClientSize.Width - 32), 34)
+            };
+            pnlStage.Controls.Add(lblStageDesc);
+
+            Label lblStageChoice = new Label { Text = "เลือกสเต็ปการแต่งรถ:", Location = new Point(16, 68), AutoSize = true, ForeColor = TextWhite };
+            pnlStage.Controls.Add(lblStageChoice);
+
+            cbStageTune = new ComboBox
+            {
+                Location = new Point(155, 65),
+                Size = new Size(320, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                BackColor = CardHeaderBg,
+                ForeColor = TextWhite,
+                FlatStyle = FlatStyle.Flat
+            };
+            cbStageTune.Items.AddRange(new object[] {
+                "สเต็ป 1: เดิมไล่ข้าง (Stock + Roller/Variator) [+4% Fuel, +2° Spark]",
+                "สเต็ป 2: ท่อกรอง (Exhaust + High-Flow Air Filter) [+8% Fuel, +3° Spark]",
+                "สเต็ป 3: ลูกโต (Big Bore Kit) [+14% Fuel, +1° Spark]"
+            });
+            cbStageTune.SelectedIndex = 0;
+            pnlStage.Controls.Add(cbStageTune);
+
+            btnApplyStageTune = CreateStyledButton("⚡ ใส่สูตรสเต็ปรถลงในไฟล์ (Apply Stage)", 485, 63, 260, 30, AccentGreen, Color.Black, true);
+            btnApplyStageTune.Click += BtnApplyStageTune_Click;
+            pnlStage.Controls.Add(btnApplyStageTune);
+
+            lblStageTuneResult = new Label
+            {
+                Text = "สถานะ: พร้อมใช้งาน (เลือกสเต็ปแล้วกดใส่สูตร)",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                ForeColor = TextMuted,
+                Location = new Point(16, 106),
+                AutoSize = true
+            };
+            pnlStage.Controls.Add(lblStageTuneResult);
+
+            pnlChop.Resize += (s, e) => { lblChopDesc.Width = Math.Max(100, pnlChop.ClientSize.Width - 32); };
+            pnlRev.Resize += (s, e) => { lblRevDesc.Width = Math.Max(100, pnlRev.ClientSize.Width - 32); };
+            pnlStage.Resize += (s, e) => { lblStageDesc.Width = Math.Max(100, pnlStage.ClientSize.Width - 32); };
+
+            tabQuickTune.Resize += (s, e) =>
+            {
+                int cardW = Math.Max(200, tabQuickTune.ClientSize.Width - 32);
+                pnlRom.Width = cardW;
+                pnlChop.Width = cardW;
+                pnlRev.Width = cardW;
+                pnlStage.Width = cardW;
+            };
+        }
+
+        #endregion
+
+        #region Tab 4: Diagnostics & Actuator Testing Setup
 
         private void SetupDiagTab()
         {
             int w = tabDiag.ClientSize.Width > 0 ? tabDiag.ClientSize.Width - 32 : 930;
 
-            Panel pnlDiagActions = CreateCardPanel(16, 12, w, 78, "คำสั่งวิเคราะห์และรีเซ็ตกล่อง (ECM Diagnostics)");
-            tabDiag.Controls.Add(pnlDiagActions);
+            Panel pnlPreCheck = CreateCardPanel(16, 12, w, 115, "1. ตรวจสอบความพร้อมของรถก่อนแฟลช (Pre-Flash Safety Check)");
+            tabDiag.Controls.Add(pnlPreCheck);
 
-            btnClearDtc = CreateStyledButton("ลบโค้ด (Clear DTC)", 16, 26, 160, 36, AccentRed, Color.White, true);
+            btnPreFlashCheck = CreateStyledButton("🔍 ตรวจสอบความพร้อมของรถก่อนแฟลช", 16, 26, 270, 34, AccentBlue, Color.White, true);
+            btnPreFlashCheck.Click += BtnPreFlashCheck_Click;
+            pnlPreCheck.Controls.Add(btnPreFlashCheck);
+
+            txtPreFlashStatus = new TextBox
+            {
+                Location = new Point(296, 24),
+                Size = new Size(Math.Max(100, pnlPreCheck.ClientSize.Width - 312), 78),
+                Multiline = true,
+                ReadOnly = true,
+                BackColor = Color.FromArgb(12, 16, 24),
+                ForeColor = Color.FromArgb(0, 230, 118),
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                BorderStyle = BorderStyle.FixedSingle,
+                Text = "กดปุ่มเพื่อตรวจสอบ: แรงดันแบตเตอรี่, ตำแหน่งลิ้นเร่ง, โค้ดความผิดปกติค้างในกล่อง"
+            };
+            pnlPreCheck.Controls.Add(txtPreFlashStatus);
+
+            Panel pnlDtcReset = CreateCardPanel(16, 134, w, 120, "2. โค้ดความผิดปกติและการรีเซ็ตกล่อง (DTC & Adaptations Reset)");
+            tabDiag.Controls.Add(pnlDtcReset);
+
+            btnReadDtc = CreateStyledButton("🔍 อ่านโค้ด DTC", 16, 26, 140, 34, CardHeaderBg, TextWhite, true);
+            btnReadDtc.Click += BtnReadDtc_Click;
+            btnClearDtc = CreateStyledButton("🗑️ ลบโค้ด (Clear DTC)", 164, 26, 160, 34, AccentRed, Color.White, true);
             btnClearDtc.Click += (s, e) => RunAction("ลบโค้ด DTC", () => activeEngine.ClearDTC());
 
-            btnResetEcm = CreateStyledButton("รีเซ็ต ECM", 190, 26, 140, 36, Color.FromArgb(255, 145, 0), Color.Black, true);
+            btnResetTp = CreateStyledButton("🔄 รีเซ็ตลิ้นเร่ง (TP Reset)", 332, 26, 175, 34, Color.FromArgb(0, 200, 83), Color.Black, true);
+            btnResetTp.Click += (s, e) => RunAction("รีเซ็ตตำแหน่งลิ้นเร่ง (TP Reset)", () => activeEngine.ResetThrottlePosition());
+
+            btnResetEcm = CreateStyledButton("⚡ รีเซ็ตกล่อง ECM", 515, 26, 140, 34, Color.FromArgb(255, 145, 0), Color.Black, true);
             btnResetEcm.Click += (s, e) => RunAction("รีเซ็ต ECM", () => activeEngine.ResetECM());
 
-            btnResetFlashCount = CreateStyledButton("รีเซ็ตแฟลชเคาท์ Shindengen", 345, 26, 230, 36, AccentPurple, Color.Black, true);
+            btnResetFlashCount = CreateStyledButton("🧼 ล้าง Flash Counter (Shindengen)", 663, 26, 230, 34, AccentPurple, Color.Black, true);
             btnResetFlashCount.Click += (s, e) => RunAction("รีเซ็ตแฟลชเคาท์", () => activeEngine.ResetFlashCounterShindengen());
 
-            pnlDiagActions.Controls.AddRange(new Control[] { btnClearDtc, btnResetEcm, btnResetFlashCount });
+            Label lblDtcHelp = new Label
+            {
+                Text = "คำแนะนำ: เลือกลบโค้ดหลังทำการซ่อมแซม และรีเซ็ตลิ้นเร่ง (TP Reset) เมื่อเปลี่ยนเรือนลิ้นเร่งหรือสายคันเร่งใหม่",
+                Location = new Point(16, 75),
+                AutoSize = true,
+                ForeColor = TextMuted,
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular)
+            };
+            pnlDtcReset.Controls.AddRange(new Control[] { btnReadDtc, btnClearDtc, btnResetTp, btnResetEcm, btnResetFlashCount, lblDtcHelp });
 
-            int logH = Math.Max(300, tabDiag.ClientSize.Height - 110);
-            Panel pnlLog = CreateCardPanel(16, 98, w, logH, "บันทึกการทำงานและผลลัพธ์ (Diagnostic Terminal Log)");
+            Panel pnlActuators = CreateCardPanel(16, 262, w, 110, "3. ทดสอบสั่งงานอุปกรณ์จริง (Active Actuator Tests)");
+            tabDiag.Controls.Add(pnlActuators);
+
+            btnTestInjector = CreateStyledButton("🔊 ทดสอบหัวฉีด (Injector)", 16, 26, 185, 34, CardHeaderBg, TextWhite, true);
+            btnTestInjector.Click += (s, e) => RunActuatorTest(ActuatorType.FuelInjector);
+
+            btnTestFuelPump = CreateStyledButton("⛽ ทดสอบปั๊มติ๊ก (Fuel Pump)", 209, 26, 195, 34, CardHeaderBg, TextWhite, true);
+            btnTestFuelPump.Click += (s, e) => RunActuatorTest(ActuatorType.FuelPump);
+
+            btnTestTacho = CreateStyledButton("📟 กวาดเรือนไมล์ (Tacho Sweep)", 412, 26, 205, 34, CardHeaderBg, TextWhite, true);
+            btnTestTacho.Click += (s, e) => RunActuatorTest(ActuatorType.TachometerSweep);
+
+            btnTestSpark = CreateStyledButton("⚡ ทดสอบไฟหัวเทียน (Spark)", 625, 26, 185, 34, CardHeaderBg, TextWhite, true);
+            btnTestSpark.Click += (s, e) => RunActuatorTest(ActuatorType.IgnitionSparkCoil);
+
+            lblActuatorResult = new Label
+            {
+                Text = "สถานะ: พร้อมสั่งงาน (กดปุ่มเพื่อทดสอบอุปกรณ์ตามต้องการ)",
+                Location = new Point(16, 72),
+                AutoSize = true,
+                ForeColor = TextMuted,
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular)
+            };
+            pnlActuators.Controls.AddRange(new Control[] { btnTestInjector, btnTestFuelPump, btnTestTacho, btnTestSpark, lblActuatorResult });
+
+            int logH = Math.Max(200, tabDiag.ClientSize.Height - 390);
+            Panel pnlLog = CreateCardPanel(16, 380, w, logH, "บันทึกการทำงานและผลลัพธ์ (Diagnostic Terminal Log)");
             tabDiag.Controls.Add(pnlLog);
 
             txtLog = new TextBox
             {
-                Location = new Point(16, 28),
-                Size = new Size(Math.Max(100, pnlLog.ClientSize.Width - 32), Math.Max(100, pnlLog.ClientSize.Height - 40)),
+                Location = new Point(16, 26),
+                Size = new Size(Math.Max(100, pnlLog.ClientSize.Width - 32), Math.Max(100, pnlLog.ClientSize.Height - 36)),
                 Multiline = true,
                 ScrollBars = ScrollBars.Vertical,
                 ReadOnly = true,
@@ -452,21 +903,20 @@ namespace RemixHondaFlash
             };
             pnlLog.Controls.Add(txtLog);
 
-            pnlLog.Resize += (s, e) =>
-            {
-                txtLog.Width = Math.Max(100, pnlLog.ClientSize.Width - 32);
-                txtLog.Height = Math.Max(100, pnlLog.ClientSize.Height - 40);
-            };
+            pnlPreCheck.Resize += (s, e) => { txtPreFlashStatus.Width = Math.Max(100, pnlPreCheck.ClientSize.Width - 312); };
+            pnlLog.Resize += (s, e) => { txtLog.Width = Math.Max(100, pnlLog.ClientSize.Width - 32); txtLog.Height = Math.Max(100, pnlLog.ClientSize.Height - 36); };
 
             tabDiag.Resize += (s, e) =>
             {
                 int cardW = Math.Max(200, tabDiag.ClientSize.Width - 32);
-                pnlDiagActions.Width = cardW;
+                pnlPreCheck.Width = cardW;
+                pnlDtcReset.Width = cardW;
+                pnlActuators.Width = cardW;
                 pnlLog.Width = cardW;
-                pnlLog.Height = Math.Max(200, tabDiag.ClientSize.Height - 110);
+                pnlLog.Height = Math.Max(160, tabDiag.ClientSize.Height - 390);
             };
 
-            LogMessage("JOSAVE TUNER Diagnostic Terminal initialized.");
+            LogMessage("JOSAVE TUNER Diagnostic & Testing Studio initialized.");
         }
 
         #endregion
@@ -991,6 +1441,13 @@ namespace RemixHondaFlash
                 lblProgressText.Text = "คำนวณ Checksum 8-bit ของ Keihin เรียบร้อยแล้ว (Valid)";
             }
 
+            if (lblQuickRomInfo != null)
+            {
+                lblQuickRomInfo.Text = string.Format("ไฟล์ที่เปิด: {0} ({1:F1} KB) | ระบบกล่อง: {2} | Checksum: 0x{3:X} (OK)",
+                    Path.GetFileName(path), loadedBin.Length / 1024.0, detectedEcuType, ckOff);
+                lblQuickRomInfo.ForeColor = AccentGreen;
+            }
+
             LogMessage("Loaded BIN file: " + path + " (" + loadedBin.Length + " bytes, " + detectedEcuType + ")");
         }
 
@@ -1249,6 +1706,376 @@ namespace RemixHondaFlash
 
         #endregion
 
+        #region Live Monitor & Quick Tune & Diag Event Handlers
+
+        private void BtnStartMonitor_Click(object sender, EventArgs e)
+        {
+            if (activeEngine == null)
+            {
+                DialogResult dr = MessageBox.Show(
+                    "ขณะนี้ยังไม่ได้เชื่อมต่อกล่อง ECM กับตัวรถ\nคุณต้องการเปิดโหมดจำลองมาตรวัดสด (Simulation Demo Mode) เพื่อทดสอบหน้าปัดและเกจวัดหรือไม่?",
+                    "เริ่มอ่านค่าสด (Live Telemetry)",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (dr == DialogResult.Yes)
+                {
+                    activePort = new VirtualKLinePort(EcuVendor.Shindengen, 512);
+                    activeEngine = new HondaKLineEngine(activePort);
+                    activeEngine.Connect();
+                    LogMessage("Live Monitor: Started in Simulation Demo Mode.");
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            isTelemetryRunning = true;
+            tmrTelemetry.Start();
+            btnStartMonitor.BackColor = CardHeaderBg;
+            btnStartMonitor.ForeColor = TextMuted;
+            btnPauseMonitor.BackColor = Color.FromArgb(255, 145, 0);
+            btnPauseMonitor.ForeColor = Color.Black;
+            lblRecordStatus.Text = "สถานะ: กำลังอ่านค่าสด (Live Streaming 10Hz)...";
+            lblRecordStatus.ForeColor = AccentGreen;
+            LogMessage("Live Telemetry monitor started.");
+        }
+
+        private void BtnPauseMonitor_Click(object sender, EventArgs e)
+        {
+            isTelemetryRunning = false;
+            tmrTelemetry.Stop();
+            btnStartMonitor.BackColor = AccentGreen;
+            btnStartMonitor.ForeColor = Color.Black;
+            btnPauseMonitor.BackColor = CardHeaderBg;
+            btnPauseMonitor.ForeColor = TextWhite;
+            lblRecordStatus.Text = "สถานะ: หยุดอ่านค่าชั่วคราว (Paused)";
+            lblRecordStatus.ForeColor = Color.FromArgb(255, 171, 0);
+            LogMessage("Live Telemetry monitor paused.");
+        }
+
+        private void BtnRecordCsv_Click(object sender, EventArgs e)
+        {
+            if (dataLogger.IsLogging)
+            {
+                dataLogger.StopLogging();
+                btnRecordCsv.Text = "⏺ บันทึก Log เป็น CSV";
+                btnRecordCsv.BackColor = AccentBlue;
+                lblRecordStatus.Text = string.Format("บันทึกเสร็จสิ้น ({0} แถว): {1}", dataLogger.RowCount, Path.GetFileName(dataLogger.FilePath));
+                LogMessage("Data logging stopped. File saved: " + dataLogger.FilePath);
+            }
+            else
+            {
+                using (SaveFileDialog sfd = new SaveFileDialog())
+                {
+                    sfd.Filter = "CSV Data Log (*.csv)|*.csv";
+                    sfd.FileName = string.Format("honda_log_{0:yyyyMMdd_HHmmss}.csv", DateTime.Now);
+                    if (sfd.ShowDialog() == DialogResult.OK)
+                    {
+                        if (dataLogger.StartLogging(sfd.FileName))
+                        {
+                            btnRecordCsv.Text = "⏹ หยุดบันทึก CSV";
+                            btnRecordCsv.BackColor = AccentRed;
+                            lblRecordStatus.Text = "กำลังบันทึก Log ลงไฟล์: " + Path.GetFileName(sfd.FileName);
+                            LogMessage("Data logging started: " + sfd.FileName);
+                            if (!isTelemetryRunning)
+                            {
+                                BtnStartMonitor_Click(null, null);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void TmrTelemetry_Tick(object sender, EventArgs e)
+        {
+            if (activeEngine == null) return;
+
+            LiveTelemetryData data;
+            if (activeEngine.QueryLiveTelemetry(out data))
+            {
+                lblRpmVal.Text = data.EngineRpm.ToString("N0") + " RPM";
+                lblTpsVal.Text = string.Format("{0:F1} % ({1:F2}V)", data.ThrottleDegrees, data.ThrottleVolts);
+                lblEotVal.Text = string.Format("{0:F1} °C", data.EngineOilTempC);
+                lblMapVal.Text = string.Format("{0:F0} kPa", data.ManifoldPressureKpa);
+                lblIatVal.Text = string.Format("{0:F1} °C", data.IntakeAirTempC);
+                lblBattVal.Text = string.Format("{0:F1} V", data.BatteryVolts);
+
+                if (data.BatteryVolts >= 12.8)
+                {
+                    lblBattVal.ForeColor = AccentGreen;
+                }
+                else if (data.BatteryVolts >= 12.0)
+                {
+                    lblBattVal.ForeColor = Color.FromArgb(255, 238, 88);
+                }
+                else
+                {
+                    lblBattVal.ForeColor = AccentRed;
+                }
+
+                lblInjVal.Text = string.Format("{0:F2} ms", data.InjectorDurationMs);
+                lblAdvVal.Text = string.Format("{0:F1}° BTDC", data.IgnitionAdvanceDeg);
+                lblAfrVal.Text = string.Format("{0:F1} AFR", data.AirFuelRatio);
+
+                // Add to waveform history
+                rpmHistory.Add(data.EngineRpm);
+                tpsHistory.Add((int)data.ThrottleDegrees);
+                if (rpmHistory.Count > 120) rpmHistory.RemoveAt(0);
+                if (tpsHistory.Count > 120) tpsHistory.RemoveAt(0);
+
+                if (dataLogger.IsLogging)
+                {
+                    dataLogger.LogData(data);
+                }
+
+                if (pnlWaveform != null && !pnlWaveform.IsDisposed)
+                {
+                    pnlWaveform.Invalidate();
+                }
+            }
+        }
+
+        private void PnlWaveform_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            int w = pnlWaveform.ClientSize.Width;
+            int h = pnlWaveform.ClientSize.Height;
+
+            using (Pen gridPen = new Pen(Color.FromArgb(24, 32, 45)))
+            {
+                for (int y = 0; y < h; y += 30) g.DrawLine(gridPen, 0, y, w, y);
+                for (int x = 0; x < w; x += 40) g.DrawLine(gridPen, x, 0, x, h);
+            }
+
+            if (rpmHistory.Count < 2) return;
+
+            using (Pen rpmPen = new Pen(Color.FromArgb(0, 229, 255), 2f))
+            using (Pen tpsPen = new Pen(AccentGreen, 1.5f))
+            {
+                float stepX = (float)w / Math.Max(60, rpmHistory.Count);
+                for (int i = 0; i < rpmHistory.Count - 1; i++)
+                {
+                    float x1 = i * stepX;
+                    float x2 = (i + 1) * stepX;
+
+                    float yRpm1 = h - (Math.Min(12000, rpmHistory[i]) / 12000f * (h - 10));
+                    float yRpm2 = h - (Math.Min(12000, rpmHistory[i + 1]) / 12000f * (h - 10));
+                    g.DrawLine(rpmPen, x1, yRpm1, x2, yRpm2);
+
+                    float yTps1 = h - (Math.Min(100, tpsHistory[i]) / 100f * (h - 10));
+                    float yTps2 = h - (Math.Min(100, tpsHistory[i + 1]) / 100f * (h - 10));
+                    g.DrawLine(tpsPen, x1, yTps1, x2, yTps2);
+                }
+            }
+        }
+
+        private void BtnApplyIdleChop_Click(object sender, EventArgs e)
+        {
+            if (loadedBin == null || loadedBin.Length == 0)
+            {
+                MessageBox.Show("กรุณาเลือกหรือเปิดไฟล์ BIN ก่อนทำการใส่สูตรเดินหอบ", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            int intensity = (cbIdleChopLevel.SelectedIndex == 0) ? 1 : 2;
+            byte[] modBin;
+            string status;
+
+            if (OneClickTunerEngine.ApplyIdleChopMod(loadedBin, detectedEcuType, intensity, out modBin, out status))
+            {
+                string origPath = txtBinPath.Text;
+                string dir = Path.GetDirectoryName(origPath);
+                string nameWithoutExt = Path.GetFileNameWithoutExtension(origPath);
+                string newPath = Path.Combine(string.IsNullOrEmpty(dir) ? AppDomain.CurrentDomain.BaseDirectory : dir,
+                    string.Format("{0}_idle_chop_lvl{1}.bin", nameWithoutExt, intensity));
+
+                File.WriteAllBytes(newPath, modBin);
+                LoadBinaryFile(newPath);
+
+                lblIdleChopResult.Text = status;
+                lblIdleChopResult.ForeColor = AccentGreen;
+                LogMessage("Idle Chop Applied: " + newPath);
+
+                MessageBox.Show(status + "\n\nบันทึกไฟล์เรียบร้อยที่:\n" + newPath + "\n\nโปรแกรมได้โหลดไฟล์นี้เข้าสู่ระบบแล้ว คุณสามารถกดไปที่แท็บ ECU Flasher แล้วกด 'อัดไฟล์' ได้ทันที!",
+                    "สำเร็จ - สูตรเดินหอบ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                lblIdleChopResult.Text = "❌ " + status;
+                lblIdleChopResult.ForeColor = AccentRed;
+            }
+        }
+
+        private void BtnApplyRevLimit_Click(object sender, EventArgs e)
+        {
+            if (loadedBin == null || loadedBin.Length == 0)
+            {
+                MessageBox.Show("กรุณาเลือกหรือเปิดไฟล์ BIN ก่อนทำการปลดรอบ", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            int[] limits = new int[] { 10000, 10500, 11000, 11500, 12000, 12500, 13000 };
+            int selectedLimit = limits[Math.Max(0, Math.Min(limits.Length - 1, cbRevLimit.SelectedIndex))];
+
+            byte[] modBin;
+            string status;
+
+            if (OneClickTunerEngine.ApplyRpmLimiterPatch(loadedBin, detectedEcuType, selectedLimit, out modBin, out status))
+            {
+                string origPath = txtBinPath.Text;
+                string dir = Path.GetDirectoryName(origPath);
+                string nameWithoutExt = Path.GetFileNameWithoutExtension(origPath);
+                string newPath = Path.Combine(string.IsNullOrEmpty(dir) ? AppDomain.CurrentDomain.BaseDirectory : dir,
+                    string.Format("{0}_rev_{1}.bin", nameWithoutExt, selectedLimit));
+
+                File.WriteAllBytes(newPath, modBin);
+                LoadBinaryFile(newPath);
+
+                lblRevLimitResult.Text = status;
+                lblRevLimitResult.ForeColor = AccentGreen;
+                LogMessage("Rev Limiter Patched: " + newPath);
+
+                MessageBox.Show(status + "\n\nบันทึกไฟล์เรียบร้อยที่:\n" + newPath + "\n\nโปรแกรมได้โหลดไฟล์นี้เข้าสู่ระบบแล้ว คุณสามารถกดไปที่แท็บ ECU Flasher แล้วกด 'อัดไฟล์' ได้ทันที!",
+                    "สำเร็จ - ปลดรอบเครื่องยนต์", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                lblRevLimitResult.Text = "❌ " + status;
+                lblRevLimitResult.ForeColor = AccentRed;
+            }
+        }
+
+        private void BtnApplyStageTune_Click(object sender, EventArgs e)
+        {
+            if (loadedBin == null || loadedBin.Length == 0)
+            {
+                MessageBox.Show("กรุณาเลือกหรือเปิดไฟล์ BIN ก่อนทำการใส่สูตรสเต็ปรถ", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            int stage = cbStageTune.SelectedIndex + 1;
+            byte[] modBin;
+            string status;
+
+            if (OneClickTunerEngine.ApplyStageQuickTune(loadedBin, detectedEcuType, stage, out modBin, out status))
+            {
+                string origPath = txtBinPath.Text;
+                string dir = Path.GetDirectoryName(origPath);
+                string nameWithoutExt = Path.GetFileNameWithoutExtension(origPath);
+                string newPath = Path.Combine(string.IsNullOrEmpty(dir) ? AppDomain.CurrentDomain.BaseDirectory : dir,
+                    string.Format("{0}_stage{1}.bin", nameWithoutExt, stage));
+
+                File.WriteAllBytes(newPath, modBin);
+                LoadBinaryFile(newPath);
+
+                lblStageTuneResult.Text = status;
+                lblStageTuneResult.ForeColor = AccentGreen;
+                LogMessage("Stage Tune Applied: " + newPath);
+
+                MessageBox.Show(status + "\n\nบันทึกไฟล์เรียบร้อยที่:\n" + newPath + "\n\nโปรแกรมได้โหลดไฟล์นี้เข้าสู่ระบบแล้ว คุณสามารถกดไปที่แท็บ ECU Flasher แล้วกด 'อัดไฟล์' ได้ทันที!",
+                    "สำเร็จ - สูตรสเต็ปรถ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                lblStageTuneResult.Text = "❌ " + status;
+                lblStageTuneResult.ForeColor = AccentRed;
+            }
+        }
+
+        private void BtnPreFlashCheck_Click(object sender, EventArgs e)
+        {
+            if (activeEngine == null)
+            {
+                MessageBox.Show("กรุณาเชื่อมต่อสายและกล่อง ECM ก่อนตรวจสอบความพร้อม", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var check = activeEngine.PerformPreFlashSafetyCheck();
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("=== ผลการตรวจสอบความพร้อมก่อนแฟลช (Pre-Flash Safety Check) ===");
+            foreach (var msg in check.CheckMessages)
+            {
+                sb.AppendLine(msg);
+            }
+
+            if (check.IsSafe)
+            {
+                sb.AppendLine("\n🎉 สรุปผล: รถและกล่อง ECM อยู่ในสภาวะพร้อมและปลอดภัยสำหรับการแฟลช!");
+                txtPreFlashStatus.ForeColor = AccentGreen;
+            }
+            else
+            {
+                sb.AppendLine("\n⚠️ สรุปผล: ตรวจพบจุดที่ต้องแก้ไขก่อนแฟลช กรุณาตรวจสอบคำเตือนด้านบน");
+                txtPreFlashStatus.ForeColor = AccentRed;
+            }
+
+            txtPreFlashStatus.Text = sb.ToString();
+            LogMessage("Pre-flash safety check performed. Safe=" + check.IsSafe);
+        }
+
+        private void BtnReadDtc_Click(object sender, EventArgs e)
+        {
+            if (activeEngine == null)
+            {
+                MessageBox.Show("กรุณาเชื่อมต่อกล่อง ECM ก่อนอ่านโค้ด", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            List<DtcFaultCode> dtcs;
+            if (activeEngine.ReadDtcFaults(out dtcs))
+            {
+                if (dtcs.Count == 0)
+                {
+                    LogMessage("DTC Scan: ไม่พบโค้ดความผิดปกติ (ระบบปกติ 100%)");
+                    MessageBox.Show("✅ ไม่พบโค้ดความผิดปกติค้างในกล่อง ECM (ระบบสะอาด 100%)", "DTC Scan", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("พบโค้ดความผิดปกติ " + dtcs.Count + " รายการ:");
+                    foreach (var d in dtcs)
+                    {
+                        sb.AppendLine("- " + d.ToString());
+                        LogMessage("DTC Found: " + d.ToString());
+                    }
+                    MessageBox.Show(sb.ToString(), "พบโค้ดความผิดปกติ (DTC)", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            else
+            {
+                LogMessage("DTC Scan: ไม่สามารถอ่านโค้ดได้ (ECM ไม่ตอบรับ)");
+            }
+        }
+
+        private void RunActuatorTest(ActuatorType type)
+        {
+            if (activeEngine == null)
+            {
+                MessageBox.Show("กรุณาเชื่อมต่อสายและกล่อง ECM ก่อนทดสอบสั่งงานอุปกรณ์", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string result;
+            if (activeEngine.ExecuteActuatorTest(type, out result))
+            {
+                lblActuatorResult.Text = result;
+                lblActuatorResult.ForeColor = AccentGreen;
+                LogMessage("Actuator Test: " + result);
+                MessageBox.Show(result, "สั่งงานอุปกรณ์สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                lblActuatorResult.Text = result;
+                lblActuatorResult.ForeColor = AccentRed;
+                LogMessage("Actuator Test Failed: " + result);
+            }
+        }
+
+        #endregion
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             if (tmrUsbDetector != null)
@@ -1256,6 +2083,17 @@ namespace RemixHondaFlash
                 tmrUsbDetector.Stop();
                 tmrUsbDetector.Dispose();
                 tmrUsbDetector = null;
+            }
+            if (tmrTelemetry != null)
+            {
+                tmrTelemetry.Stop();
+                tmrTelemetry.Dispose();
+                tmrTelemetry = null;
+            }
+            if (dataLogger != null)
+            {
+                dataLogger.Dispose();
+                dataLogger = null;
             }
             if (activeEngine != null)
             {
