@@ -375,38 +375,45 @@ namespace RemixHondaFlash
         public static string DecodeThaiEntities(string input)
         {
             if (string.IsNullOrEmpty(input)) return "";
-            if (!input.Contains("&#")) return input;
 
-            // Group consecutive &#...; entities into byte stream and decode using CP874
-            StringBuilder sb = new StringBuilder();
-            int i = 0;
             Encoding cp874;
             try { cp874 = Encoding.GetEncoding(874); } catch { cp874 = Encoding.UTF8; }
 
-            while (i < input.Length)
+            // Step 1: Decode HTML entities like &#161;&#210;...
+            if (input.Contains("&#"))
             {
-                if (input[i] == '&' && i + 1 < input.Length && input[i + 1] == '#')
+                StringBuilder sb = new StringBuilder();
+                int i = 0;
+                while (i < input.Length)
                 {
-                    List<byte> bytes = new List<byte>();
-                    while (i < input.Length && input[i] == '&' && i + 1 < input.Length && input[i + 1] == '#')
+                    if (input[i] == '&' && i + 1 < input.Length && input[i + 1] == '#')
                     {
-                        int semi = input.IndexOf(';', i);
-                        if (semi > i + 2)
+                        List<byte> bytes = new List<byte>();
+                        while (i < input.Length && input[i] == '&' && i + 1 < input.Length && input[i + 1] == '#')
                         {
-                            string numStr = input.Substring(i + 2, semi - (i + 2));
-                            int byteVal;
-                            if (int.TryParse(numStr, out byteVal) && byteVal >= 0 && byteVal <= 255)
+                            int semi = input.IndexOf(';', i);
+                            if (semi > i + 2)
                             {
-                                bytes.Add((byte)byteVal);
-                                i = semi + 1;
-                                continue;
+                                string numStr = input.Substring(i + 2, semi - (i + 2));
+                                int byteVal;
+                                if (int.TryParse(numStr, out byteVal) && byteVal >= 0 && byteVal <= 255)
+                                {
+                                    bytes.Add((byte)byteVal);
+                                    i = semi + 1;
+                                    continue;
+                                }
                             }
+                            break;
                         }
-                        break;
-                    }
-                    if (bytes.Count > 0)
-                    {
-                        sb.Append(cp874.GetString(bytes.ToArray()));
+                        if (bytes.Count > 0)
+                        {
+                            sb.Append(cp874.GetString(bytes.ToArray()));
+                        }
+                        else
+                        {
+                            sb.Append(input[i]);
+                            i++;
+                        }
                     }
                     else
                     {
@@ -414,13 +421,47 @@ namespace RemixHondaFlash
                         i++;
                     }
                 }
-                else
+                input = sb.ToString();
+            }
+
+            // Step 2: Decode Latin-1 Mojibake where bytes 0xA0..0xFF were interpreted as Latin-1 code points
+            // (e.g. "¡ÒÃ¨èÒÂ¹éÓÁÑ¹ã¹à¡ÕÂÃì" -> "การจ่ายน้ำมันในเกียร์")
+            bool hasMojibake = false;
+            for (int k = 0; k < input.Length; k++)
+            {
+                if (input[k] >= 0xA0 && input[k] <= 0xFF)
                 {
-                    sb.Append(input[i]);
-                    i++;
+                    hasMojibake = true;
+                    break;
                 }
             }
-            return sb.ToString();
+
+            if (hasMojibake)
+            {
+                StringBuilder sb2 = new StringBuilder();
+                int j = 0;
+                while (j < input.Length)
+                {
+                    if (input[j] >= 0xA0 && input[j] <= 0xFF)
+                    {
+                        List<byte> rawBytes = new List<byte>();
+                        while (j < input.Length && input[j] >= 0xA0 && input[j] <= 0xFF)
+                        {
+                            rawBytes.Add((byte)input[j]);
+                            j++;
+                        }
+                        sb2.Append(cp874.GetString(rawBytes.ToArray()));
+                    }
+                    else
+                    {
+                        sb2.Append(input[j]);
+                        j++;
+                    }
+                }
+                input = sb2.ToString();
+            }
+
+            return input;
         }
 
         public static XdfDefinition LoadFromFile(string filePath)
@@ -629,13 +670,25 @@ namespace RemixHondaFlash
                         tbl.AxisY.Labels = linked.AxisY.Labels;
                     }
 
-                    // Categorize fuel and ignition tables if not set
-                    if (string.IsNullOrEmpty(tbl.CategoryName) || tbl.CategoryName == "General")
+                    // Clean & Beautify category names
+                    if (!string.IsNullOrEmpty(tbl.CategoryName))
                     {
-                        if (tbl.Title.Contains("Fuel") || tbl.Title.Contains("น้ำมัน")) tbl.CategoryName = "น้ำมัน (Fuel)";
-                        else if (tbl.Title.Contains("Ignition") || tbl.Title.Contains("ไฟ")) tbl.CategoryName = "องศาไฟ (Ignition)";
-                        else if (tbl.Title.Contains("Limit") || tbl.Title.Contains("รอบ")) tbl.CategoryName = "ลิมิตรอบ (Rev Limit)";
-                        else tbl.CategoryName = "อื่นๆ (General)";
+                        string cLower = tbl.CategoryName.Trim().ToLowerInvariant();
+                        if (cLower == "fuel" || cLower == "fuel tables" || cLower == "injection")
+                            tbl.CategoryName = "⛽ น้ำมัน (Fuel)";
+                        else if (cLower == "ignition" || cLower == "ignition tables" || cLower == "spark")
+                            tbl.CategoryName = "🔥 องศาไฟ (Ignition)";
+                        else if (cLower == "limiters" || cLower == "limits" || cLower == "limiter")
+                            tbl.CategoryName = "⏱️ ลิมิต & ชดเชย (Limiters)";
+                        else if (cLower == "breakpoints" || cLower == "tps" || cLower == "scales")
+                            tbl.CategoryName = "📐 สเกลอ้างอิง (Breakpoints)";
+                    }
+                    else if (string.IsNullOrEmpty(tbl.CategoryName) || tbl.CategoryName == "General" || tbl.CategoryName == "1")
+                    {
+                        if (tbl.Title.Contains("Fuel") || tbl.Title.Contains("น้ำมัน") || tbl.Title.Contains("Injection")) tbl.CategoryName = "⛽ น้ำมัน (Fuel)";
+                        else if (tbl.Title.Contains("Ignition") || tbl.Title.Contains("ไฟ")) tbl.CategoryName = "🔥 องศาไฟ (Ignition)";
+                        else if (tbl.Title.Contains("Limit") || tbl.Title.Contains("ตัดรอบ") || tbl.Title.Contains("รอบ")) tbl.CategoryName = "⏱️ ลิมิตรอบ (Rev Limit)";
+                        else tbl.CategoryName = "📊 ตารางอื่นๆ (General)";
                     }
 
                     def.Tables.Add(tbl);

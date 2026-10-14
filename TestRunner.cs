@@ -577,10 +577,25 @@ namespace RemixHondaFlash
 
         private static void TestXdfParserAndThaiDecoding()
         {
-            // Test Thai entity decoding
+            // Test 1: HTML entity decoding
             string entityString = "Fuel (&#161;&#210;&#195;&#168;&#232;&#210;&#194;&#185;&#233;&#211;&#193;&#209;&#185;&#227;&#185;&#224;&#161;&#213;&#194;&#195;&#236;)";
-            string decoded = XdfDefinition.DecodeThaiEntities(entityString);
-            Assert(decoded.Contains("การจ่ายน้ำมันในเกียร์"), "Thai entity decoding failed: " + decoded);
+            string decodedEntity = XdfDefinition.DecodeThaiEntities(entityString);
+            Assert(decodedEntity.Contains("การจ่ายน้ำมันในเกียร์"), "Thai entity decoding failed: " + decodedEntity);
+
+            // Test 2: Latin-1 Mojibake decoding (¡ÒÃ¨èÒÂ¹éÓÁÑ¹ã¹à¡ÕÂÃì -> การจ่ายน้ำมันในเกียร์)
+            string mojibakeFuel = "Fuel injection (¡ÒÃ¨èÒÂ¹éÓÁÑ¹ã¹à¡ÕÂÃì)";
+            string decodedFuel = XdfDefinition.DecodeThaiEntities(mojibakeFuel);
+            Assert(decodedFuel == "Fuel injection (การจ่ายน้ำมันในเกียร์)", "Mojibake fuel decoding failed: " + decodedFuel);
+
+            // Test 3: Latin-1 Mojibake ignition (ä¿ã¹à¡ÕÂÃì -> ไฟในเกียร์)
+            string mojibakeIgn = "Ignition 1-4 (ä¿ã¹à¡ÕÂÃì)";
+            string decodedIgn = XdfDefinition.DecodeThaiEntities(mojibakeIgn);
+            Assert(decodedIgn == "Ignition 1-4 (ไฟในเกียร์)", "Mojibake ignition decoding failed: " + decodedIgn);
+
+            // Test 4: Latin-1 Mojibake rev limit (µÑ´ÃÍº¡ÒÃ¨èÒÂ¹éÓÁÑ¹ -> ตัดรอบการจ่ายน้ำมัน)
+            string mojibakeLimit = "Limit Fuel (µÑ´ÃÍº¡ÒÃ¨èÒÂ¹éÓÁÑ¹)";
+            string decodedLimit = XdfDefinition.DecodeThaiEntities(mojibakeLimit);
+            Assert(decodedLimit == "Limit Fuel (ตัดรอบการจ่ายน้ำมัน)", "Mojibake limit decoding failed: " + decodedLimit);
 
             // Test parsing sample XDF or builtin
             XdfDefinition builtin = XdfDefinition.GetBuiltinDefinition("Wave 110i LED 2021-2022 (K2J)");
