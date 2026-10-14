@@ -27,7 +27,15 @@ namespace RemixHondaFlash
         private static readonly Color TextSecondary = Color.FromArgb(144, 164, 174);
         private static readonly Color InputBg = Color.FromArgb(16, 22, 32);
 
-        // Header controls
+        // Header & Navigation Sidebar Controls
+        private Panel pnlSidebar;
+        private Panel pnlNavMenu;
+        private Panel pnlSidebarStatus;
+        private Panel pnlSidebarUsbLed;
+        private Label lblSidebarUsbStatus;
+        private Panel pnlSidebarEcmLed;
+        private Label lblSidebarEcmStatus;
+        private Label lblHeaderSectionTitle;
         private Label lblAppTitle;
         private Label lblAppSubtitle;
 
@@ -39,7 +47,6 @@ namespace RemixHondaFlash
         private TabPage tabDiag;
         private TabPage tabTools;
         private TabPage tabDatabase;
-        private Panel pnlNavBar;
         private List<Button> navButtons = new List<Button>();
 
         // Flasher Tab Controls
@@ -171,9 +178,9 @@ namespace RemixHondaFlash
 
         private void InitializeComponent()
         {
-            this.Text = "JOSAVE TUNER - Professional Honda ECU Studio";
-            this.Size = new Size(1000, 740);
-            this.MinimumSize = new Size(880, 640);
+            this.Text = "JOSAVE TUNER - Professional Honda ECU Studio (2D/3D Tuning & K-Line Flasher)";
+            this.Size = new Size(1260, 820);
+            this.MinimumSize = new Size(1024, 720);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.BackColor = BgDark;
             this.ForeColor = TextWhite;
@@ -194,20 +201,30 @@ namespace RemixHondaFlash
             }
             catch { }
 
-            // 1. Header Banner
-            Panel pnlHeader = new Panel
+            // 1. Modern Motorsport Left Navigation Sidebar (Width = 230, Dock = Left)
+            pnlSidebar = new Panel
+            {
+                Dock = DockStyle.Left,
+                Width = 230,
+                BackColor = Color.FromArgb(12, 16, 25),
+                Padding = new Padding(0)
+            };
+            this.Controls.Add(pnlSidebar);
+
+            // 1.1 Branding Header at Top of Sidebar
+            Panel pnlBrand = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 68,
-                BackColor = CardHeaderBg,
-                Padding = new Padding(20, 10, 20, 10)
+                Height = 84,
+                BackColor = Color.FromArgb(9, 13, 20),
+                Padding = new Padding(12, 12, 12, 8)
             };
-            this.Controls.Add(pnlHeader);
+            pnlSidebar.Controls.Add(pnlBrand);
 
             PictureBox pbLogo = new PictureBox
             {
-                Location = new Point(14, 9),
-                Size = new Size(50, 50),
+                Location = new Point(12, 14),
+                Size = new Size(42, 42),
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
@@ -220,55 +237,182 @@ namespace RemixHondaFlash
                 }
             }
             catch { }
-            pnlHeader.Controls.Add(pbLogo);
+            pnlBrand.Controls.Add(pbLogo);
 
             lblAppTitle = new Label
             {
                 Text = "JOSAVE TUNER",
-                Font = new Font("Segoe UI", 16F, FontStyle.Bold),
-                ForeColor = AccentBlue,
-                Location = new Point(72, 10),
+                Font = new Font("Segoe UI", 12.5F, FontStyle.Bold),
+                ForeColor = AccentCyan,
+                Location = new Point(58, 13),
                 AutoSize = true
             };
-            pnlHeader.Controls.Add(lblAppTitle);
+            pnlBrand.Controls.Add(lblAppTitle);
 
             lblAppSubtitle = new Label
             {
-                Text = "Professional Honda Motorcycle ECU Flasher & Diagnostic Studio (Keihin & Shindengen K-Line)",
-                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
-                ForeColor = TextMuted,
-                Location = new Point(76, 39),
+                Text = "HONDA RACING STUDIO",
+                Font = new Font("Segoe UI", 7.5F, FontStyle.Bold),
+                ForeColor = AccentGreen,
+                Location = new Point(60, 36),
                 AutoSize = true
             };
-            pnlHeader.Controls.Add(lblAppSubtitle);
+            pnlBrand.Controls.Add(lblAppSubtitle);
+
+            Label lblVerTag = new Label
+            {
+                Text = "K-LINE PRO • 265+ MODELS",
+                Font = new Font("Segoe UI", 7F, FontStyle.Regular),
+                ForeColor = TextMuted,
+                Location = new Point(60, 52),
+                AutoSize = true
+            };
+            pnlBrand.Controls.Add(lblVerTag);
+
+            pnlBrand.Paint += (s, e) =>
+            {
+                using (Pen borderPen = new Pen(Color.FromArgb(28, 38, 54), 1))
+                {
+                    e.Graphics.DrawLine(borderPen, 0, pnlBrand.Height - 1, pnlBrand.Width, pnlBrand.Height - 1);
+                }
+            };
+
+            // 1.2 Sidebar Bottom Status Card (Dock = Bottom)
+            pnlSidebarStatus = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 100,
+                BackColor = Color.FromArgb(9, 13, 20),
+                Padding = new Padding(12, 8, 12, 8)
+            };
+            pnlSidebar.Controls.Add(pnlSidebarStatus);
+
+            pnlSidebarStatus.Paint += (s, e) =>
+            {
+                using (Pen borderPen = new Pen(Color.FromArgb(28, 38, 54), 1))
+                {
+                    e.Graphics.DrawLine(borderPen, 0, 0, pnlSidebarStatus.Width, 0);
+                }
+            };
+
+            pnlSidebarUsbLed = new Panel { Location = new Point(12, 16), Size = new Size(10, 10), BackColor = AccentRed };
+            pnlSidebarUsbLed.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                using (Brush b = new SolidBrush(pnlSidebarUsbLed.BackColor))
+                {
+                    e.Graphics.FillEllipse(b, 0, 0, 9, 9);
+                }
+            };
+            pnlSidebarStatus.Controls.Add(pnlSidebarUsbLed);
+
+            lblSidebarUsbStatus = new Label
+            {
+                Text = "K-Line: ตรวจหาสาย...",
+                Location = new Point(28, 13),
+                Size = new Size(185, 18),
+                ForeColor = AccentRed,
+                Font = new Font("Segoe UI", 8F, FontStyle.Bold)
+            };
+            pnlSidebarStatus.Controls.Add(lblSidebarUsbStatus);
+
+            pnlSidebarEcmLed = new Panel { Location = new Point(12, 38), Size = new Size(10, 10), BackColor = Color.FromArgb(120, 120, 120) };
+            pnlSidebarEcmLed.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                using (Brush b = new SolidBrush(pnlSidebarEcmLed.BackColor))
+                {
+                    e.Graphics.FillEllipse(b, 0, 0, 9, 9);
+                }
+            };
+            pnlSidebarStatus.Controls.Add(pnlSidebarEcmLed);
+
+            lblSidebarEcmStatus = new Label
+            {
+                Text = "ECM: สแตนด์บาย",
+                Location = new Point(28, 35),
+                Size = new Size(185, 18),
+                ForeColor = TextMuted,
+                Font = new Font("Segoe UI", 8F, FontStyle.Bold)
+            };
+            pnlSidebarStatus.Controls.Add(lblSidebarEcmStatus);
+
+            Label lblSidebarTag = new Label
+            {
+                Text = "[AUTO CHECKSUM] [FAST 62.5K]",
+                Location = new Point(12, 65),
+                Size = new Size(205, 18),
+                ForeColor = AccentCyan,
+                Font = new Font("Segoe UI", 7F, FontStyle.Bold)
+            };
+            pnlSidebarStatus.Controls.Add(lblSidebarTag);
+
+            // 1.3 Navigation Rail Menu (Dock = Fill)
+            pnlNavMenu = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(12, 16, 25),
+                Padding = new Padding(6, 10, 6, 10),
+                AutoScroll = true
+            };
+            pnlSidebar.Controls.Add(pnlNavMenu);
+            pnlNavMenu.BringToFront();
+
+            // 2. Right Main Work Content Container (Dock = Fill)
+            Panel pnlMainContent = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = BgDark
+            };
+            this.Controls.Add(pnlMainContent);
+            pnlMainContent.BringToFront();
+
+            // 2.1 Studio Header Bar
+            Panel pnlHeader = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 46,
+                BackColor = Color.FromArgb(16, 22, 34),
+                Padding = new Padding(16, 0, 16, 0)
+            };
+            pnlMainContent.Controls.Add(pnlHeader);
+
+            lblHeaderSectionTitle = new Label
+            {
+                Text = "ECU MAP STUDIO — ตารางจูนน้ำมันและองศาจุดระเบิด 2D Heatmap & 3D Surface Mesh",
+                Font = new Font("Segoe UI", 10.5F, FontStyle.Bold),
+                ForeColor = AccentCyan,
+                Location = new Point(14, 13),
+                AutoSize = true
+            };
+            pnlHeader.Controls.Add(lblHeaderSectionTitle);
 
             Label lblHeaderBadge = new Label
             {
-                Text = "PRO STUDIO EDITION | K-LINE ISO 14230",
+                Text = "PRO STUDIO EDITION | ISO 14230 K-LINE",
                 Font = new Font("Segoe UI", 8F, FontStyle.Bold),
                 ForeColor = AccentGreen,
                 BackColor = Color.FromArgb(14, 38, 30),
                 BorderStyle = BorderStyle.FixedSingle,
                 Padding = new Padding(6, 4, 6, 4),
-                Location = new Point(700, 20),
+                Location = new Point(650, 10),
                 AutoSize = true
             };
             pnlHeader.Controls.Add(lblHeaderBadge);
             pnlHeader.Resize += (s, e) =>
             {
-                lblHeaderBadge.Location = new Point(pnlHeader.ClientSize.Width - lblHeaderBadge.Width - 20, 20);
+                lblHeaderBadge.Location = new Point(pnlHeader.ClientSize.Width - lblHeaderBadge.Width - 16, 10);
             };
 
-            // 2. Custom Dark Motorsport Navigation Bar (Zero WinForms White Tab Bar!)
-            pnlNavBar = new Panel
+            pnlHeader.Paint += (s, e) =>
             {
-                Dock = DockStyle.Top,
-                Height = 44,
-                BackColor = Color.FromArgb(14, 18, 27)
+                using (Pen borderPen = new Pen(Color.FromArgb(28, 38, 54), 1))
+                {
+                    e.Graphics.DrawLine(borderPen, 0, pnlHeader.Height - 1, pnlHeader.Width, pnlHeader.Height - 1);
+                }
             };
-            this.Controls.Add(pnlNavBar);
 
-            // 3. Main Tab Control (Tabs Hidden to Eliminate White Strip)
+            // 2.2 Main Tab Control (Tabs Hidden)
             tabControl = new TabControl
             {
                 Dock = DockStyle.Fill,
@@ -276,59 +420,79 @@ namespace RemixHondaFlash
                 ItemSize = new Size(0, 1),
                 SizeMode = TabSizeMode.Fixed
             };
-            this.Controls.Add(tabControl);
+            pnlMainContent.Controls.Add(tabControl);
             tabControl.BringToFront();
-            pnlNavBar.BringToFront();
 
-            tabFlasher = new TabPage("ECU FLASHER") { BackColor = BgDark };
             tabMapEditor = new TabPage("MAP STUDIO") { BackColor = BgDark };
+            tabFlasher = new TabPage("ECU FLASHER") { BackColor = BgDark };
             tabLiveMonitor = new TabPage("LIVE TELEMETRY") { BackColor = BgDark };
             tabQuickTune = new TabPage("QUICK TUNE") { BackColor = BgDark };
             tabDiag = new TabPage("DIAGNOSTICS") { BackColor = BgDark };
             tabTools = new TabPage("TUNER TOOLS") { BackColor = BgDark };
             tabDatabase = new TabPage("MODEL DATABASE") { BackColor = BgDark };
 
-            tabControl.TabPages.AddRange(new TabPage[] { tabFlasher, tabMapEditor, tabLiveMonitor, tabQuickTune, tabDiag, tabTools, tabDatabase });
+            tabControl.TabPages.AddRange(new TabPage[] { 
+                tabMapEditor, 
+                tabFlasher, 
+                tabLiveMonitor, 
+                tabQuickTune, 
+                tabDiag, 
+                tabTools, 
+                tabDatabase 
+            });
 
             // Setup each tab
-            SetupFlasherTab();
             SetupMapEditorTab();
+            SetupFlasherTab();
             SetupLiveMonitorTab();
             SetupQuickTuneTab();
             SetupDiagTab();
             SetupToolsTab();
             SetupDatabaseTab();
 
-            // Build Modern Navigation Buttons
+            // Build Modern Vertical Navigation Buttons on Sidebar
+            string[] navBadges = new string[]
+            {
+                "[MAPS]",
+                "[FLASH]",
+                "[LIVE]",
+                "[TUNE]",
+                "[DIAG]",
+                "[TOOLS]",
+                "[DATA]"
+            };
+
             string[] navTitles = new string[]
             {
-                "[FLASHER] แฟลช & ดูดไฟล์",
-                "[MAP STUDIO] ตารางจูน 2D/3D",
-                "[TELEMETRY] มาตรวัดสด & LOG",
-                "[QUICK TUNE] จูนด่วน 1-Click",
-                "[DIAGNOSTICS] ตรวจเช็ค & ลบโค้ด",
-                "[TOOLS] เครื่องมือช่าง",
-                "[DATABASE] ฐานข้อมูล 265+ รุ่น"
+                "ตารางจูน 2D / 3D (Map Studio)",
+                "แฟลช & ดูดไฟล์ (ECU Flasher)",
+                "มาตรวัดสด (Live Telemetry)",
+                "สูตรจูนด่วน 1-Click (Quick Tune)",
+                "ตรวจเช็ค & ลบโค้ด (Diagnostics)",
+                "เครื่องมือช่าง & Checksum",
+                "ฐานข้อมูล 265+ รุ่น (Database)"
             };
 
             navButtons.Clear();
-            int navX = 8;
-            for (int i = 0; i < navTitles.Length; i++)
+            int navY = 6;
+            for (int i = 0; i < navBadges.Length; i++)
             {
                 int tabIdx = i;
                 Button btnNav = new Button
                 {
-                    Text = navTitles[i],
-                    Location = new Point(navX, 4),
-                    Height = 36,
-                    AutoSize = true,
-                    Padding = new Padding(12, 0, 12, 0),
+                    Text = string.Format(" {0}  {1}", navBadges[i], navTitles[i]),
+                    Location = new Point(6, navY),
+                    Size = new Size(218, 44),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                     FlatStyle = FlatStyle.Flat,
                     Cursor = Cursors.Hand,
-                    Font = new Font("Segoe UI", 8.75F, FontStyle.Bold)
+                    Font = new Font("Segoe UI", 8.5F, FontStyle.Bold),
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Padding = new Padding(10, 0, 6, 0)
                 };
                 btnNav.FlatAppearance.BorderSize = 0;
-                btnNav.FlatAppearance.MouseOverBackColor = Color.FromArgb(24, 32, 48);
+                btnNav.FlatAppearance.MouseOverBackColor = Color.FromArgb(20, 28, 42);
+                btnNav.FlatAppearance.MouseDownBackColor = Color.FromArgb(16, 22, 34);
 
                 btnNav.Paint += (s, e) =>
                 {
@@ -337,24 +501,16 @@ namespace RemixHondaFlash
                     {
                         using (Brush brush = new SolidBrush(AccentCyan))
                         {
-                            e.Graphics.FillRectangle(brush, 4, b.Height - 3, b.Width - 8, 3);
+                            e.Graphics.FillRectangle(brush, 0, 5, 4, b.Height - 10);
                         }
                     }
                 };
 
                 btnNav.Click += (s, e) => { SelectNavTab(tabIdx); };
-                pnlNavBar.Controls.Add(btnNav);
+                pnlNavMenu.Controls.Add(btnNav);
                 navButtons.Add(btnNav);
-                navX += btnNav.PreferredSize.Width + 4;
+                navY += 48;
             }
-
-            pnlNavBar.Paint += (s, e) =>
-            {
-                using (Pen borderPen = new Pen(Color.FromArgb(28, 38, 54), 1))
-                {
-                    e.Graphics.DrawLine(borderPen, 0, pnlNavBar.Height - 1, pnlNavBar.Width, pnlNavBar.Height - 1);
-                }
-            };
 
             SelectNavTab(0);
         }
@@ -366,9 +522,27 @@ namespace RemixHondaFlash
             for (int i = 0; i < navButtons.Count; i++)
             {
                 bool active = (i == index);
-                navButtons[i].ForeColor = active ? AccentCyan : Color.FromArgb(145, 158, 175);
-                navButtons[i].BackColor = active ? Color.FromArgb(20, 28, 42) : Color.Transparent;
+                navButtons[i].ForeColor = active ? AccentCyan : Color.FromArgb(144, 164, 174);
+                navButtons[i].BackColor = active ? Color.FromArgb(18, 27, 42) : Color.Transparent;
                 navButtons[i].Invalidate();
+            }
+
+            if (lblHeaderSectionTitle != null)
+            {
+                string[] titles = new string[]
+                {
+                    "ECU MAP STUDIO — ตารางจูนน้ำมันและองศาจุดระเบิด 2D Heatmap & 3D Surface Mesh",
+                    "ECU FLASHER — เขียนและอ่านไฟล์รอม BIN ผ่านสาย K-Line ความเร็วสูง",
+                    "LIVE TELEMETRY — หน้าปัดมาตรวัดสดดิจิทัล & กราฟ Data Logging ความเร็วสูง",
+                    "QUICK TUNE — ปรับแต่งสูตรสำเร็จรูป 1-Click (เปิดรอบ, เดินหอบ, ปรับสเต็ป)",
+                    "DIAGNOSTICS — ตรวจเช็คโค้ดลบโค้ด DTC & สั่งทดสอบระบบหัวฉีด/ปั๊มติ๊ก/หัวเทียน",
+                    "TUNER TOOLS — เครื่องมือช่าง (แปลงไฟล์, แก้ไข Checksum อัตโนมัติ, ปลดล็อก XDF)",
+                    "ECU DATABASE — คลังข้อมูลรุ่นรถและรหัสกล่อง ECM ฮอนด้ากว่า 265+ รุ่น"
+                };
+                if (index >= 0 && index < titles.Length)
+                {
+                    lblHeaderSectionTitle.Text = titles[index];
+                }
             }
         }
 
@@ -568,6 +742,11 @@ namespace RemixHondaFlash
             pnlActions.Resize += (s, e) =>
             {
                 int innerW = Math.Max(100, pnlActions.ClientSize.Width - 32);
+                int btnHalfW = Math.Max(100, (innerW - 12) / 2);
+                btnReadFlash.Width = btnHalfW;
+                btnWriteFlash.Location = new Point(btnReadFlash.Right + 12, 26);
+                btnWriteFlash.Width = btnHalfW;
+
                 lblProgressText.Width = innerW;
                 lblSpeedText.Width = innerW;
                 progressBar.Width = innerW;
@@ -577,12 +756,41 @@ namespace RemixHondaFlash
 
             tabFlasher.Resize += (s, e) =>
             {
-                int cardW = Math.Max(200, tabFlasher.ClientSize.Width - 32);
-                pnlConn.Width = cardW;
-                pnlEcm.Width = cardW;
-                pnlFile.Width = cardW;
-                pnlActions.Width = cardW;
-                pnlActions.Height = Math.Max(200, tabFlasher.ClientSize.Height - 356);
+                int totalW = tabFlasher.ClientSize.Width;
+                int totalH = tabFlasher.ClientSize.Height;
+
+                if (totalW >= 880)
+                {
+                    int leftW = 440;
+                    pnlConn.Location = new Point(16, 12);
+                    pnlConn.Size = new Size(leftW, 86);
+
+                    pnlEcm.Location = new Point(16, 106);
+                    pnlEcm.Size = new Size(leftW, 118);
+
+                    pnlFile.Location = new Point(16, 232);
+                    pnlFile.Size = new Size(leftW, Math.Max(145, totalH - 248));
+
+                    int rightX = leftW + 28;
+                    int rightW = Math.Max(380, totalW - rightX - 16);
+                    pnlActions.Location = new Point(rightX, 12);
+                    pnlActions.Size = new Size(rightW, Math.Max(350, totalH - 24));
+                }
+                else
+                {
+                    int cardW = Math.Max(200, totalW - 32);
+                    pnlConn.Location = new Point(16, 12);
+                    pnlConn.Size = new Size(cardW, 86);
+
+                    pnlEcm.Location = new Point(16, 106);
+                    pnlEcm.Size = new Size(cardW, 98);
+
+                    pnlFile.Location = new Point(16, 212);
+                    pnlFile.Size = new Size(cardW, 122);
+
+                    pnlActions.Location = new Point(16, 342);
+                    pnlActions.Size = new Size(cardW, Math.Max(200, totalH - 356));
+                }
             };
         }
 
@@ -1119,7 +1327,7 @@ namespace RemixHondaFlash
             }
 
             // Switch to Flasher tab
-            tabControl.SelectedTab = tabFlasher;
+            SelectNavTab(1);
             LogMessage("[MAP EDITOR] ถ่ายโอนข้อมูลจากตารางจูน 2D/3D ไปยัง Flasher พร้อม Auto-Checksum เรียบร้อยแล้ว!");
             LogMessage("[MAP EDITOR] กรุณากด 'เขียน Flash (อัดไฟล์)' เพื่อเริ่มกระบวนการแฟลชลงกล่อง");
         }
@@ -2029,6 +2237,16 @@ namespace RemixHondaFlash
                 lblUsbStatus.Text = cableSummary;
             }
 
+            if (pnlSidebarUsbLed != null && !pnlSidebarUsbLed.IsDisposed)
+            {
+                pnlSidebarUsbLed.BackColor = isCablePlugged ? AccentGreen : AccentRed;
+            }
+            if (lblSidebarUsbStatus != null && !lblSidebarUsbStatus.IsDisposed)
+            {
+                lblSidebarUsbStatus.ForeColor = isCablePlugged ? AccentGreen : AccentRed;
+                lblSidebarUsbStatus.Text = isCablePlugged ? "K-Line: เสียบสายแล้ว" : "K-Line: ตรวจหาสาย...";
+            }
+
             if (pnlEcmIndicator != null && !pnlEcmIndicator.IsDisposed && lblEcmStatus != null && !lblEcmStatus.IsDisposed)
             {
                 if (activeEngine != null)
@@ -2051,6 +2269,24 @@ namespace RemixHondaFlash
                         lblEcmStatus.ForeColor = TextMuted;
                         lblEcmStatus.Text = "กล่อง ECM: ยังไม่เชื่อมต่อ";
                     }
+                }
+            }
+
+            if (pnlSidebarEcmLed != null && !pnlSidebarEcmLed.IsDisposed)
+            {
+                pnlSidebarEcmLed.BackColor = activeEngine != null ? AccentGreen : (isCablePlugged ? Color.FromArgb(255, 171, 0) : Color.FromArgb(120, 120, 120));
+            }
+            if (lblSidebarEcmStatus != null && !lblSidebarEcmStatus.IsDisposed)
+            {
+                if (activeEngine != null)
+                {
+                    lblSidebarEcmStatus.ForeColor = AccentGreen;
+                    lblSidebarEcmStatus.Text = "ECM: ออนไลน์";
+                }
+                else
+                {
+                    lblSidebarEcmStatus.ForeColor = isCablePlugged ? Color.FromArgb(255, 171, 0) : TextMuted;
+                    lblSidebarEcmStatus.Text = isCablePlugged ? "ECM: สแตนด์บาย" : "ECM: ออฟไลน์";
                 }
             }
 
