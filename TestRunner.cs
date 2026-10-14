@@ -68,6 +68,7 @@ namespace RemixHondaFlash
             RunTest("Map Studio: Mathematical Transforms (Scale, Offset, Smooth)", TestMapMathTransforms);
             RunTest("Map Studio: Interpolation Engine (Horizontal & Vertical)", TestMapInterpolation);
             RunTest("Map Studio: Save Tuned Binary & Checksum Auto-Correction", TestSaveTunedBinAndChecksum);
+            RunTest("Map Studio: Shindengen 256KB Multi-Architecture Offsets", TestShindengenMapDefinitions);
 
             totalSw.Stop();
 
@@ -700,6 +701,60 @@ namespace RemixHondaFlash
             finally
             {
                 if (File.Exists(tempFile)) File.Delete(tempFile);
+            }
+        }
+
+        private static void TestShindengenMapDefinitions()
+        {
+            // 1. Test IsShindengen classification
+            Assert(XdfDefinition.IsShindengen("Giorno+ (K3M)"), "Giorno+ not recognized as Shindengen");
+            Assert(XdfDefinition.IsShindengen("Lead 125 (K2T)"), "Lead 125 not recognized as Shindengen");
+            Assert(XdfDefinition.IsShindengen("PCX 160 (K1Z)"), "PCX 160 not recognized as Shindengen");
+            Assert(XdfDefinition.IsShindengen("ADV 160 (K0W)"), "ADV 160 not recognized as Shindengen");
+            Assert(XdfDefinition.IsShindengen("Forza 350 (K1B)"), "Forza 350 not recognized as Shindengen");
+            Assert(!XdfDefinition.IsShindengen("Wave 110i LED 2021-2022 (K2J)"), "Wave 110i wrongly identified as Shindengen");
+            Assert(!XdfDefinition.IsShindengen("Wave 125i (K73)"), "Wave 125i wrongly identified as Shindengen");
+
+            // 2. Test auto-detection by binary buffer length
+            byte[] mock64k = new byte[65536];
+            byte[] mock256k = new byte[262144];
+            Assert(!XdfDefinition.IsShindengen(null, mock64k), "64KB binary buffer wrongly identified as Shindengen");
+            Assert(XdfDefinition.IsShindengen(null, mock256k), "256KB binary buffer not identified as Shindengen");
+
+            // 3. Test Builtin Definition for Giorno+ (K3M)
+            XdfDefinition shinDef = XdfDefinition.GetBuiltinDefinition("Giorno+ (K3M)", mock256k);
+            Assert(shinDef != null, "Shindengen definition is null");
+            Assert(shinDef.Tables.Count >= 4, "Shindengen definition missing tables");
+
+            // Verify Fuel Table is at 0x3A078 (29x29, 16-bit uint, X/1000)
+            XdfTable fuelTbl = shinDef.Tables[0];
+            Assert(fuelTbl.AxisZ.Address == 0x3A078, "Fuel Table address mismatch: " + fuelTbl.AxisZ.Address);
+            Assert(fuelTbl.AxisZ.ElementSizeBytes == 2, "Fuel Table element size mismatch: " + fuelTbl.AxisZ.ElementSizeBytes);
+            Assert(fuelTbl.Rows == 29 && fuelTbl.Cols == 29, "Fuel Table dimension mismatch");
+
+            // Verify Ignition Table is at 0x3BA36 (29x29, 8-bit uint, X*0.3572-15.72)
+            XdfTable ignTbl = shinDef.Tables[2];
+            Assert(ignTbl.AxisZ.Address == 0x3BA36, "Ignition Table address mismatch: " + ignTbl.AxisZ.Address);
+            Assert(ignTbl.AxisZ.ElementSizeBytes == 1, "Ignition Table element size mismatch: " + ignTbl.AxisZ.ElementSizeBytes);
+
+            // Verify Rev Limiter Constants
+            Assert(shinDef.Constants.Count >= 5, "Shindengen missing Rev Limiter constants");
+            Assert(shinDef.Constants[0].Address == 0x394F4, "Rev Limiter 1 address mismatch");
+            Assert(shinDef.Constants[1].Address == 0x394F6, "Rev Limiter 2 address mismatch");
+            Assert(shinDef.Constants[2].Address == 0x395DE, "Spark Limiter 1 address mismatch");
+            Assert(shinDef.Constants[3].Address == 0x397A4, "Spark Limiter 2 address mismatch");
+            Assert(shinDef.Constants[4].Address == 0x3B044, "Spark Limiter 3 address mismatch");
+
+            // 4. Test reading authentic values if Giorno+ binary exists on disk
+            string giornoBin = @"C:\Users\Jo_save\Desktop\giorno remap file\K3MF-T01.bin";
+            if (File.Exists(giornoBin))
+            {
+                byte[] realBin = File.ReadAllBytes(giornoBin);
+                float sampleFuel = fuelTbl.GetDisplayValue(realBin, 0, 0);
+                Assert(sampleFuel >= 1.0f && sampleFuel <= 15.0f, "Real Giorno+ fuel value out of valid range: " + sampleFuel);
+
+                float sampleIgn = ignTbl.GetDisplayValue(realBin, 0, 0);
+                Assert(sampleIgn >= 10.0f && sampleIgn <= 75.0f, "Real Giorno+ ignition value out of valid range: " + sampleIgn);
             }
         }
 

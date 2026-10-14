@@ -741,138 +741,296 @@ namespace RemixHondaFlash
 
         #region Built-in Factory Presets for Honda Models
 
+        public static bool IsShindengen(string modelName, byte[] bin = null)
+        {
+            if (bin != null && bin.Length >= 131072) return true;
+            if (bin != null && bin.Length <= 65536) return false;
+            if (string.IsNullOrEmpty(modelName)) return false;
+            string m = modelName.ToLowerInvariant();
+            return m.Contains("giorno") || m.Contains("k3m") ||
+                   m.Contains("lead") || m.Contains("k2t") ||
+                   m.Contains("pcx") || m.Contains("k1z") ||
+                   m.Contains("adv") || m.Contains("k0w") ||
+                   m.Contains("click 160") || m.Contains("k0s") ||
+                   m.Contains("forza") || m.Contains("k1b") ||
+                   m.Contains("shindengen");
+        }
+
         public static XdfDefinition GetBuiltinDefinition(string modelName)
+        {
+            return GetBuiltinDefinition(modelName, null);
+        }
+
+        public static XdfDefinition GetBuiltinDefinition(string modelName, byte[] bin)
         {
             XdfDefinition def = new XdfDefinition();
             def.Title = modelName;
 
-            // Generate standard RPM breakpoints (500 - 12000 RPM)
-            string[] rpmLabels = new string[]
-            {
-                "500", "800", "1000", "1200", "1400", "1600", "1800", "2000", "2200", "2400",
-                "2600", "2800", "3000", "3500", "4000", "4500", "5000", "5500", "6000", "6500",
-                "7000", "7500", "8000", "8500", "9000", "9500", "10000", "10500", "11000"
-            };
+            bool isShindengen = IsShindengen(modelName, bin);
 
-            // Generate standard TPS % breakpoints (0% - 100%)
-            string[] tpsLabels = new string[]
-            {
-                "0.0%", "0.5%", "1.0%", "1.5%", "2.0%", "2.8%", "3.5%", "4.5%", "5.5%", "7.0%",
-                "8.5%", "10.0%", "12.5%", "15.0%", "18.0%", "22.0%", "26.0%", "30.0%", "35.0%", "40.0%",
-                "45.0%", "50.0%", "58.0%", "65.0%", "72.0%", "80.0%", "88.0%", "95.0%", "100.0%"
-            };
+            string[] rpmLabels;
+            string[] tpsLabels;
 
-            // 1. Fuel In-Gear (น้ำมัน 1-4)
-            XdfTable fuelInGear = new XdfTable
+            if (isShindengen)
             {
-                UniqueId = "FUEL_INGEAR",
-                Title = "น้ำมัน 1-4 (Fuel In-Gear 29x29)",
-                Description = "ตารางหลักการจ่ายน้ำมันขณะเข้าเกียร์ (ความกว้างพัลส์หัวฉีดหน่วย ms)",
-                CategoryName = "น้ำมัน (Fuel Injection)",
-                DecimalPlaces = 3,
-                MinValue = 0.5f,
-                MaxValue = 15.0f
-            };
-            fuelInGear.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
-            fuelInGear.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
-            fuelInGear.AxisZ = new XdfAxis("z") { Units = "ms", ElementSizeBytes = 2, Address = 0x84, MathEquation = "X/1000" };
-            def.Tables.Add(fuelInGear);
+                // Authentic Giorno+ K3M / Shindengen 256KB Factory Breakpoints
+                rpmLabels = new string[]
+                {
+                    "678", "712", "733", "808", "920", "1036", "1263", "1515", "1804", "2084",
+                    "2419", "2764", "3209", "3699", "3999", "4298", "4614", "4939", "5352", "5778",
+                    "6269", "6730", "7123", "7486", "7737", "7957", "8178", "8240", "9525"
+                };
+                tpsLabels = new string[]
+                {
+                    "0.0%", "0.8%", "1.5%", "2.3%", "3.5%", "4.8%", "6.5%", "8.5%", "11.0%", "14.0%",
+                    "17.5%", "21.5%", "26.0%", "31.0%", "36.5%", "42.0%", "48.5%", "55.0%", "62.0%", "69.0%",
+                    "75.0%", "80.0%", "85.0%", "90.0%", "93.0%", "95.0%", "97.0%", "98.5%", "100.0%"
+                };
 
-            // 2. Fuel Fast-Idle (น้ำมันเกียร์ว่าง N)
-            XdfTable fuelNeutral = new XdfTable
-            {
-                UniqueId = "FUEL_NEUTRAL",
-                Title = "น้ำมัน N (Fuel Fast-Idle 29x29)",
-                Description = "ตารางการจ่ายน้ำมันขณะเกียร์ว่างหรือรอบเดินเบา Fast-Idle",
-                CategoryName = "น้ำมัน (Fuel Injection)",
-                DecimalPlaces = 3,
-                MinValue = 0.5f,
-                MaxValue = 15.0f
-            };
-            fuelNeutral.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
-            fuelNeutral.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
-            fuelNeutral.AxisZ = new XdfAxis("z") { Units = "ms", ElementSizeBytes = 2, Address = 0x716, MathEquation = "X/1000" };
-            def.Tables.Add(fuelNeutral);
+                // 1. Fuel In-Gear (น้ำมัน 1-4) - Address 0x3A078 (29x29, 16-bit uint LE, X/1000 ms)
+                XdfTable fuelInGear = new XdfTable
+                {
+                    UniqueId = "FUEL_INGEAR",
+                    Title = "น้ำมัน 1-4 (Fuel In-Gear 29x29)",
+                    Description = "ตารางหลักการจ่ายน้ำมัน TPS vs RPM (ความกว้างพัลส์หัวฉีดหน่วย ms)",
+                    CategoryName = "น้ำมัน (Fuel Injection)",
+                    DecimalPlaces = 3,
+                    MinValue = 0.5f,
+                    MaxValue = 18.0f
+                };
+                fuelInGear.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                fuelInGear.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
+                fuelInGear.AxisZ = new XdfAxis("z") { Units = "ms", ElementSizeBytes = 2, Address = 0x3A078, MathEquation = "X/1000" };
+                def.Tables.Add(fuelInGear);
 
-            // 3. Ignition In-Gear (ไฟ 1-4)
-            XdfTable ignInGear = new XdfTable
-            {
-                UniqueId = "IGN_INGEAR",
-                Title = "ไฟ 1-4 (Ignition In-Gear 29x29)",
-                Description = "องศาไฟจุดระเบิดในเกียร์ 1 ถึง 4 (°BTDC)",
-                CategoryName = "องศาไฟ (Ignition Timing)",
-                DecimalPlaces = 2,
-                MinValue = -15f,
-                MaxValue = 60f
-            };
-            ignInGear.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
-            ignInGear.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
-            ignInGear.AxisZ = new XdfAxis("z") { Units = "°BTDC", ElementSizeBytes = 1, Address = 0xDA8, MathEquation = "X*0.3572-15.72" };
-            def.Tables.Add(ignInGear);
+                // 2. Fuel Fast-Idle (น้ำมันเกียร์ว่าง N) - Address 0x3A70A (29x29, 16-bit uint LE, X/1000 ms)
+                XdfTable fuelNeutral = new XdfTable
+                {
+                    UniqueId = "FUEL_NEUTRAL",
+                    Title = "น้ำมัน N (Fuel Fast-Idle 29x29)",
+                    Description = "ตารางการจ่ายน้ำมันรอบเดินเบา Fast-Idle และช่วง TPS ต่ำ",
+                    CategoryName = "น้ำมัน (Fuel Injection)",
+                    DecimalPlaces = 3,
+                    MinValue = 0.5f,
+                    MaxValue = 35.0f
+                };
+                fuelNeutral.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                fuelNeutral.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
+                fuelNeutral.AxisZ = new XdfAxis("z") { Units = "ms", ElementSizeBytes = 2, Address = 0x3A70A, MathEquation = "X/1000" };
+                def.Tables.Add(fuelNeutral);
 
-            // 4. Ignition Neutral (ไฟเกียร์ว่าง N)
-            XdfTable ignNeutral = new XdfTable
-            {
-                UniqueId = "IGN_NEUTRAL",
-                Title = "ไฟ N (Ignition Neutral 29x29)",
-                Description = "องศาไฟจุดระเบิดขณะเกียร์ว่าง (°BTDC)",
-                CategoryName = "องศาไฟ (Ignition Timing)",
-                DecimalPlaces = 2,
-                MinValue = -15f,
-                MaxValue = 60f
-            };
-            ignNeutral.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
-            ignNeutral.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
-            ignNeutral.AxisZ = new XdfAxis("z") { Units = "°BTDC", ElementSizeBytes = 1, Address = 0x10F1, MathEquation = "X*0.3572-15.72" };
-            def.Tables.Add(ignNeutral);
+                // 3. Ignition In-Gear (ไฟ 1-4) - Address 0x3BA36 (29x29, 8-bit uint, X*0.3572-15.72 deg BTDC)
+                XdfTable ignInGear = new XdfTable
+                {
+                    UniqueId = "IGN_INGEAR",
+                    Title = "ไฟ 1-4 (Ignition In-Gear 29x29)",
+                    Description = "องศาไฟจุดระเบิดหลักเทียบกับรอบและคันเร่ง (°BTDC)",
+                    CategoryName = "องศาไฟ (Ignition Timing)",
+                    DecimalPlaces = 2,
+                    MinValue = -15f,
+                    MaxValue = 80f
+                };
+                ignInGear.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                ignInGear.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
+                ignInGear.AxisZ = new XdfAxis("z") { Units = "°BTDC", ElementSizeBytes = 1, Address = 0x3BA36, MathEquation = "X*0.3572-15.72" };
+                def.Tables.Add(ignInGear);
 
-            // 5. Injection Timing Degree
-            XdfTable injDegree = new XdfTable
-            {
-                UniqueId = "INJ_DEGREE",
-                Title = "องศาการฉีดน้ำมัน (Injection Degree)",
-                Description = "องศาจังหวะการฉีดน้ำมันเทียบกับเพลาข้อเหวี่ยง",
-                CategoryName = "น้ำมัน (Fuel Injection)",
-                DecimalPlaces = 1,
-                MinValue = 0f,
-                MaxValue = 720f
-            };
-            injDegree.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
-            injDegree.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
-            injDegree.AxisZ = new XdfAxis("z") { Units = "°", ElementSizeBytes = 1, Address = 0x143A, MathEquation = "X*2.8125" };
-            def.Tables.Add(injDegree);
+                // 4. Ignition Neutral / Throttle Response (ไฟ N) - Address 0x3B61F
+                XdfTable ignNeutral = new XdfTable
+                {
+                    UniqueId = "IGN_NEUTRAL",
+                    Title = "ไฟ N (Ignition Neutral 29x29)",
+                    Description = "องศาไฟจุดระเบิดจังหวะเกียร์ว่างหรือคันเร่งต่ำ (°BTDC)",
+                    CategoryName = "องศาไฟ (Ignition Timing)",
+                    DecimalPlaces = 2,
+                    MinValue = -15f,
+                    MaxValue = 80f
+                };
+                ignNeutral.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                ignNeutral.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
+                ignNeutral.AxisZ = new XdfAxis("z") { Units = "°BTDC", ElementSizeBytes = 1, Address = 0x3B61F, MathEquation = "X*0.3572-15.72" };
+                def.Tables.Add(ignNeutral);
 
-            // 6. Constants (Scalars)
-            def.Constants.Add(new XdfConstant
+                // 5. Constants (Scalars for Rev Limiters - 16-bit LE direct RPM)
+                def.Constants.Add(new XdfConstant
+                {
+                    UniqueId = "REV_LIMIT_FUEL_1",
+                    Title = "ปลดรอบ 1 - ตัดน้ำมัน (Fuel Rev Limiter 1)",
+                    CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
+                    Address = 0x394F4,
+                    ElementSizeBytes = 2,
+                    MathEquation = "X",
+                    Units = "RPM"
+                });
+                def.Constants.Add(new XdfConstant
+                {
+                    UniqueId = "REV_LIMIT_FUEL_2",
+                    Title = "ปลดรอบ 2 - ตัดน้ำมัน (Fuel Rev Limiter 2)",
+                    CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
+                    Address = 0x394F6,
+                    ElementSizeBytes = 2,
+                    MathEquation = "X",
+                    Units = "RPM"
+                });
+                def.Constants.Add(new XdfConstant
+                {
+                    UniqueId = "REV_LIMIT_IGN_1",
+                    Title = "ปลดรอบ 3 - ตัดไฟ (Spark Rev Limiter 1)",
+                    CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
+                    Address = 0x395DE,
+                    ElementSizeBytes = 2,
+                    MathEquation = "X",
+                    Units = "RPM"
+                });
+                def.Constants.Add(new XdfConstant
+                {
+                    UniqueId = "REV_LIMIT_IGN_2",
+                    Title = "ปลดรอบ 4 - ตัดไฟ (Spark Rev Limiter 2)",
+                    CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
+                    Address = 0x397A4,
+                    ElementSizeBytes = 2,
+                    MathEquation = "X",
+                    Units = "RPM"
+                });
+                def.Constants.Add(new XdfConstant
+                {
+                    UniqueId = "REV_LIMIT_IGN_3",
+                    Title = "ปลดรอบ 5 - ตัดไฟ (Spark Rev Limiter 3)",
+                    CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
+                    Address = 0x3B044,
+                    ElementSizeBytes = 2,
+                    MathEquation = "X",
+                    Units = "RPM"
+                });
+            }
+            else
             {
-                UniqueId = "REV_LIMIT_FUEL",
-                Title = "ลิมิตรอบ ตัดน้ำมัน (Fuel Rev Limiter)",
-                CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
-                Address = 0x17A0,
-                ElementSizeBytes = 2,
-                MathEquation = "X/3.64086",
-                Units = "RPM"
-            });
-            def.Constants.Add(new XdfConstant
-            {
-                UniqueId = "REV_LIMIT_IGN",
-                Title = "ลิมิตรอบ ตัดไฟ (Spark Rev Limiter)",
-                CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
-                Address = 0x17A2,
-                ElementSizeBytes = 2,
-                MathEquation = "X/3.64086",
-                Units = "RPM"
-            });
-            def.Constants.Add(new XdfConstant
-            {
-                UniqueId = "TARGET_IDLE_RPM",
-                Title = "รอบเดินเบาเป้าหมาย (Target Idle RPM)",
-                CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
-                Address = 0x17A6,
-                ElementSizeBytes = 2,
-                MathEquation = "X/3.64086",
-                Units = "RPM"
-            });
+                // Factory Keihin 64KB Breakpoints & Addresses (Wave 110i, Wave 125i, Scoopy, etc.)
+                rpmLabels = new string[]
+                {
+                    "500", "800", "1000", "1200", "1400", "1600", "1800", "2000", "2200", "2400",
+                    "2600", "2800", "3000", "3500", "4000", "4500", "5000", "5500", "6000", "6500",
+                    "7000", "7500", "8000", "8500", "9000", "9500", "10000", "10500", "11000"
+                };
+                tpsLabels = new string[]
+                {
+                    "0.0%", "0.5%", "1.0%", "1.5%", "2.0%", "2.8%", "3.5%", "4.5%", "5.5%", "7.0%",
+                    "8.5%", "10.0%", "12.5%", "15.0%", "18.0%", "22.0%", "26.0%", "30.0%", "35.0%", "40.0%",
+                    "45.0%", "50.0%", "58.0%", "65.0%", "72.0%", "80.0%", "88.0%", "95.0%", "100.0%"
+                };
+
+                // 1. Fuel In-Gear (น้ำมัน 1-4)
+                XdfTable fuelInGear = new XdfTable
+                {
+                    UniqueId = "FUEL_INGEAR",
+                    Title = "น้ำมัน 1-4 (Fuel In-Gear 29x29)",
+                    Description = "ตารางหลักการจ่ายน้ำมันขณะเข้าเกียร์ (ความกว้างพัลส์หัวฉีดหน่วย ms)",
+                    CategoryName = "น้ำมัน (Fuel Injection)",
+                    DecimalPlaces = 3,
+                    MinValue = 0.5f,
+                    MaxValue = 15.0f
+                };
+                fuelInGear.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                fuelInGear.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
+                fuelInGear.AxisZ = new XdfAxis("z") { Units = "ms", ElementSizeBytes = 2, Address = 0x84, MathEquation = "X/1000" };
+                def.Tables.Add(fuelInGear);
+
+                // 2. Fuel Fast-Idle (น้ำมันเกียร์ว่าง N)
+                XdfTable fuelNeutral = new XdfTable
+                {
+                    UniqueId = "FUEL_NEUTRAL",
+                    Title = "น้ำมัน N (Fuel Fast-Idle 29x29)",
+                    Description = "ตารางการจ่ายน้ำมันขณะเกียร์ว่างหรือรอบเดินเบา Fast-Idle",
+                    CategoryName = "น้ำมัน (Fuel Injection)",
+                    DecimalPlaces = 3,
+                    MinValue = 0.5f,
+                    MaxValue = 15.0f
+                };
+                fuelNeutral.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                fuelNeutral.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
+                fuelNeutral.AxisZ = new XdfAxis("z") { Units = "ms", ElementSizeBytes = 2, Address = 0x716, MathEquation = "X/1000" };
+                def.Tables.Add(fuelNeutral);
+
+                // 3. Ignition In-Gear (ไฟ 1-4)
+                XdfTable ignInGear = new XdfTable
+                {
+                    UniqueId = "IGN_INGEAR",
+                    Title = "ไฟ 1-4 (Ignition In-Gear 29x29)",
+                    Description = "องศาไฟจุดระเบิดในเกียร์ 1 ถึง 4 (°BTDC)",
+                    CategoryName = "องศาไฟ (Ignition Timing)",
+                    DecimalPlaces = 2,
+                    MinValue = -15f,
+                    MaxValue = 60f
+                };
+                ignInGear.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                ignInGear.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
+                ignInGear.AxisZ = new XdfAxis("z") { Units = "°BTDC", ElementSizeBytes = 1, Address = 0xDA8, MathEquation = "X*0.3572-15.72" };
+                def.Tables.Add(ignInGear);
+
+                // 4. Ignition Neutral (ไฟเกียร์ว่าง N)
+                XdfTable ignNeutral = new XdfTable
+                {
+                    UniqueId = "IGN_NEUTRAL",
+                    Title = "ไฟ N (Ignition Neutral 29x29)",
+                    Description = "องศาไฟจุดระเบิดขณะเกียร์ว่าง (°BTDC)",
+                    CategoryName = "องศาไฟ (Ignition Timing)",
+                    DecimalPlaces = 2,
+                    MinValue = -15f,
+                    MaxValue = 60f
+                };
+                ignNeutral.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                ignNeutral.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
+                ignNeutral.AxisZ = new XdfAxis("z") { Units = "°BTDC", ElementSizeBytes = 1, Address = 0x10F1, MathEquation = "X*0.3572-15.72" };
+                def.Tables.Add(ignNeutral);
+
+                // 5. Injection Timing Degree
+                XdfTable injDegree = new XdfTable
+                {
+                    UniqueId = "INJ_DEGREE",
+                    Title = "องศาการฉีดน้ำมัน (Injection Degree)",
+                    Description = "องศาจังหวะการฉีดน้ำมันเทียบกับเพลาข้อเหวี่ยง",
+                    CategoryName = "น้ำมัน (Fuel Injection)",
+                    DecimalPlaces = 1,
+                    MinValue = 0f,
+                    MaxValue = 720f
+                };
+                injDegree.AxisX = new XdfAxis("x") { Units = "TPS %", IndexCount = 29, Labels = tpsLabels };
+                injDegree.AxisY = new XdfAxis("y") { Units = "RPM", IndexCount = 29, Labels = rpmLabels };
+                injDegree.AxisZ = new XdfAxis("z") { Units = "°", ElementSizeBytes = 1, Address = 0x143A, MathEquation = "X*2.8125" };
+                def.Tables.Add(injDegree);
+
+                // 6. Constants (Scalars)
+                def.Constants.Add(new XdfConstant
+                {
+                    UniqueId = "REV_LIMIT_FUEL",
+                    Title = "ลิมิตรอบ ตัดน้ำมัน (Fuel Rev Limiter)",
+                    CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
+                    Address = 0x17A0,
+                    ElementSizeBytes = 2,
+                    MathEquation = "X/3.64086",
+                    Units = "RPM"
+                });
+                def.Constants.Add(new XdfConstant
+                {
+                    UniqueId = "REV_LIMIT_IGN",
+                    Title = "ลิมิตรอบ ตัดไฟ (Spark Rev Limiter)",
+                    CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
+                    Address = 0x17A2,
+                    ElementSizeBytes = 2,
+                    MathEquation = "X/3.64086",
+                    Units = "RPM"
+                });
+                def.Constants.Add(new XdfConstant
+                {
+                    UniqueId = "TARGET_IDLE_RPM",
+                    Title = "รอบเดินเบาเป้าหมาย (Target Idle RPM)",
+                    CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
+                    Address = 0x17A6,
+                    ElementSizeBytes = 2,
+                    MathEquation = "X/3.64086",
+                    Units = "RPM"
+                });
+            }
 
             return def;
         }

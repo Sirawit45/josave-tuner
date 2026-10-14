@@ -1181,28 +1181,61 @@ namespace RemixHondaFlash
 
             if (def == null || def.Tables.Count == 0)
             {
-                def = XdfDefinition.GetBuiltinDefinition(modelName);
+                def = XdfDefinition.GetBuiltinDefinition(modelName, mapSession.ActiveBin ?? loadedBin);
             }
 
             mapSession.LoadDefinition(def);
 
-            // Auto-load sample BIN if available and no BIN currently loaded
-            string sampleBin = @"C:\Users\Jo_save\Desktop\realtime\BIN\64KB\38770-K2J-T01_8000-0_WAVE 110i 2021-2022.bin";
-            if (mapSession.ActiveBin == null)
+            // Sample BIN locations
+            string waveBin = @"C:\Users\Jo_save\Desktop\realtime\BIN\64KB\38770-K2J-T01_8000-0_WAVE 110i 2021-2022.bin";
+            string giornoBin = @"C:\Users\Jo_save\Desktop\giorno remap file\K3MF-T01 ฟาง V.3.bin";
+            if (!File.Exists(giornoBin)) giornoBin = @"C:\Users\Jo_save\Desktop\giorno remap file\K3MF-T01.bin";
+
+            bool isShindengen = XdfDefinition.IsShindengen(modelName);
+
+            // If switching preset between architectures, update loaded sample bin appropriately
+            if (isShindengen)
             {
-                if (loadedBin != null)
+                if (mapSession.ActiveBin == null || mapSession.ActiveBin.Length < 131072)
                 {
-                    mapSession.LoadBin(loadedBin, txtBinPath.Text);
-                }
-                else if (File.Exists(sampleBin))
-                {
-                    try
+                    if (File.Exists(giornoBin))
                     {
-                        byte[] bytes = File.ReadAllBytes(sampleBin);
-                        mapSession.LoadBin(bytes, sampleBin);
+                        try
+                        {
+                            byte[] bytes = File.ReadAllBytes(giornoBin);
+                            mapSession.LoadBin(bytes, giornoBin);
+                            loadedBin = bytes;
+                            txtBinPath.Text = giornoBin;
+                            lblFileSize.Text = string.Format("{0:N0} Bytes ({1} KB)", bytes.Length, bytes.Length / 1024);
+                        }
+                        catch { }
                     }
-                    catch { }
                 }
+            }
+            else
+            {
+                if (mapSession.ActiveBin == null || mapSession.ActiveBin.Length > 65536)
+                {
+                    if (File.Exists(waveBin))
+                    {
+                        try
+                        {
+                            byte[] bytes = File.ReadAllBytes(waveBin);
+                            mapSession.LoadBin(bytes, waveBin);
+                            loadedBin = bytes;
+                            txtBinPath.Text = waveBin;
+                            lblFileSize.Text = string.Format("{0:N0} Bytes ({1} KB)", bytes.Length, bytes.Length / 1024);
+                        }
+                        catch { }
+                    }
+                }
+            }
+
+            // Ensure definition matches active bin architecture
+            if (mapSession.ActiveBin != null && XdfDefinition.IsShindengen("", mapSession.ActiveBin) != isShindengen)
+            {
+                def = XdfDefinition.GetBuiltinDefinition(modelName, mapSession.ActiveBin);
+                mapSession.LoadDefinition(def);
             }
 
             gridEditor.BindSession(mapSession);
@@ -1226,6 +1259,42 @@ namespace RemixHondaFlash
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     byte[] bytes = File.ReadAllBytes(ofd.FileName);
+
+                    // Auto-detect architecture based on file size
+                    bool isShinBin = bytes.Length >= 131072;
+                    string currPreset = (cmbMapModelPreset.SelectedItem != null) ? cmbMapModelPreset.SelectedItem.ToString() : "";
+                    bool isShinPreset = XdfDefinition.IsShindengen(currPreset);
+
+                    if (isShinBin && !isShinPreset)
+                    {
+                        // Auto-switch combo box to Giorno+ (K3M)
+                        for (int i = 0; i < cmbMapModelPreset.Items.Count; i++)
+                        {
+                            if (cmbMapModelPreset.Items[i].ToString().Contains("Giorno"))
+                            {
+                                cmbMapModelPreset.SelectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                    else if (!isShinBin && isShinPreset)
+                    {
+                        // Auto-switch combo box to Wave 110i
+                        for (int i = 0; i < cmbMapModelPreset.Items.Count; i++)
+                        {
+                            if (cmbMapModelPreset.Items[i].ToString().Contains("Wave 110i"))
+                            {
+                                cmbMapModelPreset.SelectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Reload definition matching this binary
+                    currPreset = (cmbMapModelPreset.SelectedItem != null) ? cmbMapModelPreset.SelectedItem.ToString() : "";
+                    XdfDefinition def = XdfDefinition.GetBuiltinDefinition(currPreset, bytes);
+                    mapSession.LoadDefinition(def);
+
                     mapSession.LoadBin(bytes, ofd.FileName);
 
                     // Also set into main Flasher tab
@@ -1235,6 +1304,7 @@ namespace RemixHondaFlash
 
                     gridEditor.BindSession(mapSession);
                     graph3D.BindSession(mapSession);
+                    PopulateTableTree();
                     UpdateSelectionStats();
 
                     lblMapBinStatus.Text = string.Format("ไฟล์: {0} ({1:N0} KB)\nChecksum: อัตโนมัติ (พร้อมแฟลช)",

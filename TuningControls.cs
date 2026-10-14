@@ -637,25 +637,34 @@ namespace RemixHondaFlash
             int rows = tbl.Rows;
             int cols = tbl.Cols;
 
-            // Find min/max for elevation normalization
+            // Find min/max and average for elevation normalization
             float minVal = float.MaxValue;
             float maxVal = float.MinValue;
+            float sumVal = 0f;
+            int validCount = 0;
             for (int r = 0; r < rows; r++)
             {
                 for (int c = 0; c < cols; c++)
                 {
                     float v = tbl.GetDisplayValue(bin, r, c);
+                    if (float.IsNaN(v) || float.IsInfinity(v)) v = 0f;
                     if (v < minVal) minVal = v;
                     if (v > maxVal) maxVal = v;
+                    sumVal += v;
+                    validCount++;
                 }
             }
-            if (Math.Abs(maxVal - minVal) < 0.0001f) maxVal = minVal + 1f;
+            float avgVal = validCount > 0 ? sumVal / validCount : 0f;
+            if (float.IsInfinity(minVal) || float.IsInfinity(maxVal) || Math.Abs(maxVal - minVal) < 0.0001f)
+            {
+                maxVal = minVal + 1f;
+            }
 
             // Projection parameters
             float centerX = Width / 2f;
-            float centerY = Height / 2f + 40f;
-            float baseScale = Math.Min(Width, Height) * 0.42f * zoomScale;
-            float heightScale = 0.55f;
+            float centerY = Height / 2f + 35f;
+            float baseScale = Math.Min(Width, Height) * 0.40f * zoomScale;
+            float heightScale = 0.52f;
 
             float radAzimuth = azimuth * (float)Math.PI / 180f;
             float radElevation = elevation * (float)Math.PI / 180f;
@@ -667,8 +676,8 @@ namespace RemixHondaFlash
             Func<Point3D, Tuple<PointF, float>> project = (p3) =>
             {
                 // Normalize X, Y to [-1, 1]
-                float nx = (p3.X / (cols - 1f) * 2f) - 1f;
-                float ny = (p3.Y / (rows - 1f) * 2f) - 1f;
+                float nx = (p3.X / Math.Max(1f, cols - 1f) * 2f) - 1f;
+                float ny = (p3.Y / Math.Max(1f, rows - 1f) * 2f) - 1f;
                 float nz = p3.Z * heightScale;
 
                 // Rotate azimuth (around Z)
@@ -687,6 +696,49 @@ namespace RemixHondaFlash
                 return new Tuple<PointF, float>(new PointF(sx, sy), pz);
             };
 
+            float span = maxVal - minVal;
+            if (span <= 0.00001f) span = 1f;
+
+            // Draw Ground Base Plane & Wireframe Grid
+            using (var baseGridPen = new Pen(Color.FromArgb(28, 38, 56), 1f))
+            using (var dropLinePen = new Pen(Color.FromArgb(50, 70, 95), 1f) { DashStyle = DashStyle.Dot })
+            using (var axisFont = new Font("Segoe UI", 8f, FontStyle.Bold))
+            using (var axisBrush = new SolidBrush(Color.FromArgb(120, 150, 180)))
+            {
+                int rStep = Math.Max(1, (rows - 1) / 5);
+                for (int r = 0; r < rows; r += rStep)
+                {
+                    var pS = project(new Point3D(0, r, 0f)).Item1;
+                    var pE = project(new Point3D(cols - 1, r, 0f)).Item1;
+                    g.DrawLine(baseGridPen, pS, pE);
+                }
+                int cStep = Math.Max(1, (cols - 1) / 5);
+                for (int c = 0; c < cols; c += cStep)
+                {
+                    var pS = project(new Point3D(c, 0, 0f)).Item1;
+                    var pE = project(new Point3D(c, rows - 1, 0f)).Item1;
+                    g.DrawLine(baseGridPen, pS, pE);
+                }
+
+                // 4 Corner drop lines from surface to ground plane
+                int[] cr = new int[] { 0, 0, rows - 1, rows - 1 };
+                int[] cc = new int[] { 0, cols - 1, cols - 1, 0 };
+                for (int i = 0; i < 4; i++)
+                {
+                    float v = Math.Max(0f, Math.Min(1f, (tbl.GetDisplayValue(bin, cr[i], cc[i]) - minVal) / span));
+                    var ptTop = project(new Point3D(cc[i], cr[i], v)).Item1;
+                    var ptBot = project(new Point3D(cc[i], cr[i], 0f)).Item1;
+                    g.DrawLine(dropLinePen, ptTop, ptBot);
+                }
+
+                // Axis indicators at base
+                var pOrigin = project(new Point3D(0, 0, 0f)).Item1;
+                var pTpsEnd = project(new Point3D(cols - 1, 0, 0f)).Item1;
+                var pRpmEnd = project(new Point3D(0, rows - 1, 0f)).Item1;
+                g.DrawString("TPS % ->", axisFont, axisBrush, (pOrigin.X + pTpsEnd.X) / 2 - 15, (pOrigin.Y + pTpsEnd.Y) / 2 + 6);
+                g.DrawString("RPM ->", axisFont, axisBrush, (pOrigin.X + pRpmEnd.X) / 2 - 15, (pOrigin.Y + pRpmEnd.Y) / 2 + 6);
+            }
+
             // Build Quad List
             List<ProjectedQuad> quadList = new List<ProjectedQuad>();
             PointF liveBeaconPoint = PointF.Empty;
@@ -695,10 +747,10 @@ namespace RemixHondaFlash
             {
                 for (int c = 0; c < cols - 1; c++)
                 {
-                    float v0 = (tbl.GetDisplayValue(bin, r, c) - minVal) / (maxVal - minVal);
-                    float v1 = (tbl.GetDisplayValue(bin, r, c + 1) - minVal) / (maxVal - minVal);
-                    float v2 = (tbl.GetDisplayValue(bin, r + 1, c + 1) - minVal) / (maxVal - minVal);
-                    float v3 = (tbl.GetDisplayValue(bin, r + 1, c) - minVal) / (maxVal - minVal);
+                    float v0 = Math.Max(0f, Math.Min(1f, (tbl.GetDisplayValue(bin, r, c) - minVal) / span));
+                    float v1 = Math.Max(0f, Math.Min(1f, (tbl.GetDisplayValue(bin, r, c + 1) - minVal) / span));
+                    float v2 = Math.Max(0f, Math.Min(1f, (tbl.GetDisplayValue(bin, r + 1, c + 1) - minVal) / span));
+                    float v3 = Math.Max(0f, Math.Min(1f, (tbl.GetDisplayValue(bin, r + 1, c) - minVal) / span));
 
                     var p0 = project(new Point3D(c, r, v0));
                     var p1 = project(new Point3D(c + 1, r, v1));
@@ -706,7 +758,7 @@ namespace RemixHondaFlash
                     var p3 = project(new Point3D(c, r + 1, v3));
 
                     float avgZ = (p0.Item2 + p1.Item2 + p2.Item2 + p3.Item2) / 4f;
-                    float avgVal = (v0 + v1 + v2 + v3) / 4f;
+                    float avgQuadNorm = (v0 + v1 + v2 + v3) / 4f;
 
                     quadList.Add(new ProjectedQuad
                     {
@@ -715,7 +767,7 @@ namespace RemixHondaFlash
                         P2 = p2.Item1,
                         P3 = p3.Item1,
                         AvgZ = avgZ,
-                        AvgValueNorm = avgVal,
+                        AvgValueNorm = avgQuadNorm,
                         Row = r,
                         Col = c
                     });
@@ -782,6 +834,39 @@ namespace RemixHondaFlash
             {
                 string info = string.Format("หมุนมุมมอง: {0:F0}° | ก้ม/เงย: {1:F0}° | ซูม: {2:F1}x\n(คลิกเมาส์ซ้ายลาก = หมุน 3D | สกอร์ลเมาส์ = ซูม)", azimuth, elevation, zoomScale);
                 g.DrawString(info, hudFont, hudBrush, 12, 12);
+            }
+
+            // Overlay Top-Right Data Legend Badge
+            string zUnit = tbl.AxisZ != null ? tbl.AxisZ.Units : "";
+            string statsText = string.Format("ต่ำสุด: {0:F2} | เฉลี่ย: {1:F2} | สูงสุด: {2:F2} {3}", minVal, avgVal, maxVal, zUnit);
+            using (var badgeFont = new Font("Segoe UI", 8.5f, FontStyle.Bold))
+            using (var badgeBg = new SolidBrush(Color.FromArgb(190, 18, 24, 38)))
+            using (var badgeBorder = new Pen(Color.FromArgb(50, 70, 100), 1f))
+            using (var textBrush = new SolidBrush(Color.FromArgb(0, 229, 255)))
+            {
+                var sz = g.MeasureString(statsText, badgeFont);
+                float bx = Width - sz.Width - 24;
+                float by = 12;
+                if (bx > 250)
+                {
+                    g.FillRectangle(badgeBg, bx, by, sz.Width + 14, sz.Height + 18);
+                    g.DrawRectangle(badgeBorder, bx, by, sz.Width + 14, sz.Height + 18);
+                    g.DrawString(statsText, badgeFont, textBrush, bx + 7, by + 4);
+
+                    // Mini gradient bar
+                    float barW = sz.Width;
+                    float barH = 5;
+                    float barX = bx + 7;
+                    float barY = by + sz.Height + 7;
+                    for (int i = 0; i < (int)barW; i++)
+                    {
+                        float t = i / barW;
+                        using (var pBrush = new SolidBrush(Get3DSurfaceColor(t)))
+                        {
+                            g.FillRectangle(pBrush, barX + i, barY, 1, barH);
+                        }
+                    }
+                }
             }
         }
 
