@@ -1759,22 +1759,22 @@ namespace RemixHondaFlash
                 switch (type)
                 {
                     case ActuatorType.FuelInjector:
-                        resultMessage = "✅ สั่งงานหัวฉีด (Injector Test): สั่งหัวฉีดส่งเสียงคลิก 5 ครั้งเรียบร้อย (วงจรและหัวฉีดปกติ)";
+                        resultMessage = "[OK] สั่งงานหัวฉีด (Injector Test): สั่งหัวฉีดส่งเสียงคลิก 5 ครั้งเรียบร้อย (วงจรและหัวฉีดปกติ)";
                         break;
                     case ActuatorType.FuelPump:
-                        resultMessage = "✅ สั่งงานปั๊มติ๊ก (Fuel Pump Test): สั่งรีเลย์ปั๊มติ๊กทำงาน 3 วินาทีเรียบร้อย (แรงดันน้ำมันพร้อม)";
+                        resultMessage = "[OK] สั่งงานปั๊มติ๊ก (Fuel Pump Test): สั่งรีเลย์ปั๊มติ๊กทำงาน 3 วินาทีเรียบร้อย (แรงดันน้ำมันพร้อม)";
                         break;
                     case ActuatorType.TachometerSweep:
-                        resultMessage = "✅ ทดสอบเรือนไมล์ (Tachometer Sweep): สั่งกวาดเข็มวัดรอบและทดสอบไฟหน้าปัดเรียบร้อย";
+                        resultMessage = "[OK] ทดสอบเรือนไมล์ (Tachometer Sweep): สั่งกวาดเข็มวัดรอบและทดสอบไฟหน้าปัดเรียบร้อย";
                         break;
                     case ActuatorType.IgnitionSparkCoil:
-                        resultMessage = "✅ สั่งงานคอยล์จุดระเบิด (Spark Coil Test): จ่ายประกายไฟทดสอบ 3 ครั้งเรียบร้อย";
+                        resultMessage = "[OK] สั่งงานคอยล์จุดระเบิด (Spark Coil Test): จ่ายประกายไฟทดสอบ 3 ครั้งเรียบร้อย";
                         break;
                 }
                 return true;
             }
 
-            resultMessage = "❌ สั่งงานอุปกรณ์ไม่สำเร็จ (ECM ไม่ตอบรับ หรือไม่ได้เปิดสวิตช์กุญแจ)";
+            resultMessage = "[ERROR] สั่งงานอุปกรณ์ไม่สำเร็จ (ECM ไม่ตอบรับ หรือไม่ได้เปิดสวิตช์กุญแจ)";
             return false;
         }
 
@@ -1791,26 +1791,26 @@ namespace RemixHondaFlash
                 if (live.BatteryVolts < 12.0)
                 {
                     result.IsSafe = false;
-                    result.CheckMessages.Add(string.Format("⚠️ แบตเตอรี่ต่ำเกินไป ({0:F1}V) - เสี่ยงกล่องดับขณะแฟลช แนะนำชาร์จให้เกิน 12.2V", live.BatteryVolts));
+                    result.CheckMessages.Add(string.Format("[WARN] แบตเตอรี่ต่ำเกินไป ({0:F1}V) - เสี่ยงกล่องดับขณะแฟลช แนะนำชาร์จให้เกิน 12.2V", live.BatteryVolts));
                 }
                 else
                 {
-                    result.CheckMessages.Add(string.Format("✅ แรงดันแบตเตอรี่ปกติ ({0:F1}V) - ปลอดภัยสำหรับการแฟลช", live.BatteryVolts));
+                    result.CheckMessages.Add(string.Format("[OK] แรงดันแบตเตอรี่ปกติ ({0:F1}V) - ปลอดภัยสำหรับการแฟลช", live.BatteryVolts));
                 }
 
                 if (live.ThrottleDegrees > 2.0)
                 {
                     result.IsSafe = false;
-                    result.CheckMessages.Add(string.Format("⚠️ ลิ้นเร่งไม่ได้อยู่ในตำแหน่งปิดสุด ({0:F1}°) - กรุณาปล่อยคันเร่งสุด", live.ThrottleDegrees));
+                    result.CheckMessages.Add(string.Format("[WARN] ลิ้นเร่งไม่ได้อยู่ในตำแหน่งปิดสุด ({0:F1}°) - กรุณาปล่อยคันเร่งสุด", live.ThrottleDegrees));
                 }
                 else
                 {
-                    result.CheckMessages.Add("✅ ตำแหน่งคันเร่งปิดสนิท (0.0°) - ปกติ");
+                    result.CheckMessages.Add("[OK] ตำแหน่งคันเร่งปิดสนิท (0.0°) - ปกติ");
                 }
             }
             else
             {
-                result.CheckMessages.Add("ℹ️ ระบบพร้อมสำหรับการตรวจสอบ ECM");
+                result.CheckMessages.Add("[INFO] ระบบพร้อมสำหรับการตรวจสอบ ECM");
             }
 
             List<DtcFaultCode> dtcs;
@@ -1819,11 +1819,11 @@ namespace RemixHondaFlash
                 result.ActiveDtcCount = dtcs.Count;
                 if (dtcs.Count > 0)
                 {
-                    result.CheckMessages.Add(string.Format("⚠️ พบโค้ดความผิดปกติ {0} รายการค้างในกล่อง (แนะนำลบโค้ดก่อนจูน)", dtcs.Count));
+                    result.CheckMessages.Add(string.Format("[WARN] พบโค้ดความผิดปกติ {0} รายการค้างในกล่อง (แนะนำลบโค้ดก่อนจูน)", dtcs.Count));
                 }
                 else
                 {
-                    result.CheckMessages.Add("✅ ไม่พบโค้ดความผิดปกติค้างในกล่อง ECM (ระบบสะอาด)");
+                    result.CheckMessages.Add("[OK] ไม่พบโค้ดความผิดปกติค้างในกล่อง ECM (ระบบสะอาด)");
                 }
             }
 
@@ -2229,7 +2229,7 @@ namespace RemixHondaFlash
             AutoFixChecksum(modifiedBin, ecuType, out ckOffset);
 
             string levelName = (lopeIntensity == 2) ? "ลั่นดุดัน (Aggressive Lope)" : "นุ่มนวล (Mild Lope)";
-            statusMessage = string.Format("✅ ใส่สูตรเดินหอบสำเร็จ! ระดับ: {0}\n- ปรับจังหวะจุดระเบิดสลับรอบเดินเบาเรียบร้อย\n- ชดเชยน้ำมันรอบเดินเบาเรียบร้อย\n- คำนวณ Checksum อัตโนมัติที่ออฟเซ็ต 0x{1:X} เรียบร้อย",
+            statusMessage = string.Format("[OK] ใส่สูตรเดินหอบสำเร็จ! ระดับ: {0}\n- ปรับจังหวะจุดระเบิดสลับรอบเดินเบาเรียบร้อย\n- ชดเชยน้ำมันรอบเดินเบาเรียบร้อย\n- คำนวณ Checksum อัตโนมัติที่ออฟเซ็ต 0x{1:X} เรียบร้อย",
                 levelName, ckOffset);
             return true;
         }
@@ -2316,7 +2316,7 @@ namespace RemixHondaFlash
             int ckOffset;
             AutoFixChecksum(modifiedBin, ecuType, out ckOffset);
 
-            statusMessage = string.Format("✅ ปลดรอบเครื่องยนต์สำเร็จ! เป้าหมาย: {0:N0} RPM\n- แก้ไขจุดตัดรอบจำนวน {1} ตำแหน่ง\n- คำนวณ Checksum อัตโนมัติที่ออฟเซ็ต 0x{2:X} เรียบร้อย พร้อมอัดลงกล่อง",
+            statusMessage = string.Format("[OK] ปลดรอบเครื่องยนต์สำเร็จ! เป้าหมาย: {0:N0} RPM\n- แก้ไขจุดตัดรอบจำนวน {1} ตำแหน่ง\n- คำนวณ Checksum อัตโนมัติที่ออฟเซ็ต 0x{2:X} เรียบร้อย พร้อมอัดลงกล่อง",
                 targetRpm, patchCount, ckOffset);
             return true;
         }
@@ -2368,7 +2368,7 @@ namespace RemixHondaFlash
                                (stageLevel == 2) ? "สเต็ป 2: ท่อกรอง (Exhaust + Air Filter)" :
                                                    "สเต็ป 3: ลูกโต (Big Bore Kit)";
 
-            statusMessage = string.Format("✅ ปรับแต่งสูตร {0} สำเร็จ!\n- ชดเชยปริมาณน้ำมันเชื้อเพลิง (+{1}%)\n- เพิ่มองศาไฟจุดระเบิด (+{2}°)\n- คำนวณ Checksum อัตโนมัติที่ออฟเซ็ต 0x{3:X} เรียบร้อย",
+            statusMessage = string.Format("[OK] ปรับแต่งสูตร {0} สำเร็จ!\n- ชดเชยปริมาณน้ำมันเชื้อเพลิง (+{1}%)\n- เพิ่มองศาไฟจุดระเบิด (+{2}°)\n- คำนวณ Checksum อัตโนมัติที่ออฟเซ็ต 0x{3:X} เรียบร้อย",
                 stageName, fuelDelta, sparkDelta, ckOffset);
             return true;
         }

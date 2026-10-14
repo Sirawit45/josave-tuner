@@ -670,25 +670,25 @@ namespace RemixHondaFlash
                         tbl.AxisY.Labels = linked.AxisY.Labels;
                     }
 
-                    // Clean & Beautify category names
+                    // Clean & Beautify category names (Clean, Professional, No Emojis)
                     if (!string.IsNullOrEmpty(tbl.CategoryName))
                     {
                         string cLower = tbl.CategoryName.Trim().ToLowerInvariant();
-                        if (cLower == "fuel" || cLower == "fuel tables" || cLower == "injection")
-                            tbl.CategoryName = "⛽ น้ำมัน (Fuel)";
-                        else if (cLower == "ignition" || cLower == "ignition tables" || cLower == "spark")
-                            tbl.CategoryName = "🔥 องศาไฟ (Ignition)";
-                        else if (cLower == "limiters" || cLower == "limits" || cLower == "limiter")
-                            tbl.CategoryName = "⏱️ ลิมิต & ชดเชย (Limiters)";
-                        else if (cLower == "breakpoints" || cLower == "tps" || cLower == "scales")
-                            tbl.CategoryName = "📐 สเกลอ้างอิง (Breakpoints)";
+                        if (cLower.Contains("fuel") || cLower.Contains("injection") || cLower.Contains("น้ำมัน"))
+                            tbl.CategoryName = "น้ำมัน (Fuel Injection)";
+                        else if (cLower.Contains("ignition") || cLower.Contains("spark") || cLower.Contains("ไฟ"))
+                            tbl.CategoryName = "องศาไฟ (Ignition Timing)";
+                        else if (cLower.Contains("limit") || cLower.Contains("ตัดรอบ") || cLower.Contains("รอบ"))
+                            tbl.CategoryName = "ลิมิต & ชดเชย (Rev Limiters)";
+                        else if (cLower.Contains("breakpoint") || cLower.Contains("tps") || cLower.Contains("scale"))
+                            tbl.CategoryName = "สเกลอ้างอิง (Breakpoints & TPS)";
                     }
                     else if (string.IsNullOrEmpty(tbl.CategoryName) || tbl.CategoryName == "General" || tbl.CategoryName == "1")
                     {
-                        if (tbl.Title.Contains("Fuel") || tbl.Title.Contains("น้ำมัน") || tbl.Title.Contains("Injection")) tbl.CategoryName = "⛽ น้ำมัน (Fuel)";
-                        else if (tbl.Title.Contains("Ignition") || tbl.Title.Contains("ไฟ")) tbl.CategoryName = "🔥 องศาไฟ (Ignition)";
-                        else if (tbl.Title.Contains("Limit") || tbl.Title.Contains("ตัดรอบ") || tbl.Title.Contains("รอบ")) tbl.CategoryName = "⏱️ ลิมิตรอบ (Rev Limit)";
-                        else tbl.CategoryName = "📊 ตารางอื่นๆ (General)";
+                        if (tbl.Title.Contains("Fuel") || tbl.Title.Contains("น้ำมัน") || tbl.Title.Contains("Injection")) tbl.CategoryName = "น้ำมัน (Fuel Injection)";
+                        else if (tbl.Title.Contains("Ignition") || tbl.Title.Contains("ไฟ")) tbl.CategoryName = "องศาไฟ (Ignition Timing)";
+                        else if (tbl.Title.Contains("Limit") || tbl.Title.Contains("ตัดรอบ") || tbl.Title.Contains("รอบ")) tbl.CategoryName = "ลิมิต & ชดเชย (Rev Limiters)";
+                        else tbl.CategoryName = "ตารางอื่นๆ (Auxiliary Maps)";
                     }
 
                     def.Tables.Add(tbl);
@@ -768,7 +768,7 @@ namespace RemixHondaFlash
                 UniqueId = "FUEL_INGEAR",
                 Title = "น้ำมัน 1-4 (Fuel In-Gear 29x29)",
                 Description = "ตารางหลักการจ่ายน้ำมันขณะเข้าเกียร์ (ความกว้างพัลส์หัวฉีดหน่วย ms)",
-                CategoryName = "⛽ น้ำมัน (Fuel)",
+                CategoryName = "น้ำมัน (Fuel Injection)",
                 DecimalPlaces = 3,
                 MinValue = 0.5f,
                 MaxValue = 15.0f
@@ -784,7 +784,7 @@ namespace RemixHondaFlash
                 UniqueId = "FUEL_NEUTRAL",
                 Title = "น้ำมัน N (Fuel Fast-Idle 29x29)",
                 Description = "ตารางการจ่ายน้ำมันขณะเกียร์ว่างหรือรอบเดินเบา Fast-Idle",
-                CategoryName = "⛽ น้ำมัน (Fuel)",
+                CategoryName = "น้ำมัน (Fuel Injection)",
                 DecimalPlaces = 3,
                 MinValue = 0.5f,
                 MaxValue = 15.0f
@@ -800,7 +800,7 @@ namespace RemixHondaFlash
                 UniqueId = "IGN_INGEAR",
                 Title = "ไฟ 1-4 (Ignition In-Gear 29x29)",
                 Description = "องศาไฟจุดระเบิดในเกียร์ 1 ถึง 4 (°BTDC)",
-                CategoryName = "🔥 องศาไฟ (Ignition)",
+                CategoryName = "องศาไฟ (Ignition Timing)",
                 DecimalPlaces = 2,
                 MinValue = -15f,
                 MaxValue = 60f
@@ -816,7 +816,7 @@ namespace RemixHondaFlash
                 UniqueId = "IGN_NEUTRAL",
                 Title = "ไฟ N (Ignition Neutral 29x29)",
                 Description = "องศาไฟจุดระเบิดขณะเกียร์ว่าง (°BTDC)",
-                CategoryName = "🔥 องศาไฟ (Ignition)",
+                CategoryName = "องศาไฟ (Ignition Timing)",
                 DecimalPlaces = 2,
                 MinValue = -15f,
                 MaxValue = 60f
@@ -832,7 +832,7 @@ namespace RemixHondaFlash
                 UniqueId = "INJ_DEGREE",
                 Title = "องศาการฉีดน้ำมัน (Injection Degree)",
                 Description = "องศาจังหวะการฉีดน้ำมันเทียบกับเพลาข้อเหวี่ยง",
-                CategoryName = "⛽ น้ำมัน (Fuel)",
+                CategoryName = "น้ำมัน (Fuel Injection)",
                 DecimalPlaces = 1,
                 MinValue = 0f,
                 MaxValue = 720f
@@ -847,7 +847,7 @@ namespace RemixHondaFlash
             {
                 UniqueId = "REV_LIMIT_FUEL",
                 Title = "ลิมิตรอบ ตัดน้ำมัน (Fuel Rev Limiter)",
-                CategoryName = "⏱️ ลิมิต & ชดเชย",
+                CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
                 Address = 0x17A0,
                 ElementSizeBytes = 2,
                 MathEquation = "X/3.64086",
@@ -857,7 +857,7 @@ namespace RemixHondaFlash
             {
                 UniqueId = "REV_LIMIT_IGN",
                 Title = "ลิมิตรอบ ตัดไฟ (Spark Rev Limiter)",
-                CategoryName = "⏱️ ลิมิต & ชดเชย",
+                CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
                 Address = 0x17A2,
                 ElementSizeBytes = 2,
                 MathEquation = "X/3.64086",
@@ -867,7 +867,7 @@ namespace RemixHondaFlash
             {
                 UniqueId = "TARGET_IDLE_RPM",
                 Title = "รอบเดินเบาเป้าหมาย (Target Idle RPM)",
-                CategoryName = "⏱️ ลิมิต & ชดเชย",
+                CategoryName = "ลิมิต & ชดเชย (Rev Limiters)",
                 Address = 0x17A6,
                 ElementSizeBytes = 2,
                 MathEquation = "X/3.64086",

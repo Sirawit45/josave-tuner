@@ -222,7 +222,7 @@ namespace RemixHondaFlash
 
             lblAppTitle = new Label
             {
-                Text = "⚡ JOSAVE TUNER",
+                Text = "JOSAVE TUNER",
                 Font = new Font("Segoe UI", 16F, FontStyle.Bold),
                 ForeColor = AccentBlue,
                 Location = new Point(72, 10),
@@ -242,7 +242,7 @@ namespace RemixHondaFlash
 
             Label lblHeaderBadge = new Label
             {
-                Text = "⚡ PRO STUDIO EDITION | K-LINE ISO 14230",
+                Text = "PRO STUDIO EDITION | K-LINE ISO 14230",
                 Font = new Font("Segoe UI", 8F, FontStyle.Bold),
                 ForeColor = AccentGreen,
                 BackColor = Color.FromArgb(14, 38, 30),
@@ -267,13 +267,13 @@ namespace RemixHondaFlash
             this.Controls.Add(tabControl);
             tabControl.BringToFront();
 
-            tabFlasher = new TabPage("⚡ ECU Flasher (หน้าหลัก แฟลช / ดูดไฟล์)") { BackColor = BgDark };
-            tabMapEditor = new TabPage("📈 ตารางจูน 2D & 3D (ECU Map Editor)") { BackColor = BgDark };
-            tabLiveMonitor = new TabPage("📊 Live Monitor (มาตรวัดสด & บันทึก Log)") { BackColor = BgDark };
-            tabQuickTune = new TabPage("🚀 สูตรจูนด่วน 1-Click (เดินหอบ & ปลดรอบ)") { BackColor = BgDark };
-            tabDiag = new TabPage("🔧 Diagnostics & Tests (วิเคราะห์ & สั่งงาน)") { BackColor = BgDark };
-            tabTools = new TabPage("🛠 Tuner Tools (เครื่องมือช่างจูน)") { BackColor = BgDark };
-            tabDatabase = new TabPage("📚 Model Database (ฐานข้อมูล 265+ รุ่น)") { BackColor = BgDark };
+            tabFlasher = new TabPage("ECU FLASHER (แฟลช / ดูดไฟล์)") { BackColor = BgDark };
+            tabMapEditor = new TabPage("MAP STUDIO (ตารางจูน 2D & 3D)") { BackColor = BgDark };
+            tabLiveMonitor = new TabPage("LIVE TELEMETRY (มาตรวัดสด & Data Log)") { BackColor = BgDark };
+            tabQuickTune = new TabPage("QUICK TUNE (สูตรจูนสำเร็จรูป 1-Click)") { BackColor = BgDark };
+            tabDiag = new TabPage("DIAGNOSTICS (อ่านโค้ด & ตรวจระบบ)") { BackColor = BgDark };
+            tabTools = new TabPage("TUNER TOOLS (แปลงไฟล์ & ปลดรหัส)") { BackColor = BgDark };
+            tabDatabase = new TabPage("MODEL DATABASE (ฐานข้อมูล ECM)") { BackColor = BgDark };
 
             tabControl.TabPages.AddRange(new TabPage[] { tabFlasher, tabMapEditor, tabLiveMonitor, tabQuickTune, tabDiag, tabTools, tabDatabase });
 
@@ -416,10 +416,10 @@ namespace RemixHondaFlash
             Panel pnlActions = CreateCardPanel(16, 342, w, actH, "การทำงาน (Read / Write Engine & Live Monitor)");
             tabFlasher.Controls.Add(pnlActions);
 
-            btnReadFlash = CreateStyledButton("📥 ดูดไฟล์จาก ECM (Read Flash)", 16, 26, 240, 42, Color.FromArgb(0, 168, 150), Color.White, true);
+            btnReadFlash = CreateStyledButton("[READ] ดูดไฟล์จาก ECM (Read Flash)", 16, 26, 240, 42, Color.FromArgb(0, 168, 150), Color.White, true);
             btnReadFlash.Click += BtnReadFlash_Click;
 
-            btnWriteFlash = CreateStyledButton("📤 เขียนไฟล์ลง ECM (Write Flash)", 268, 26, 250, 42, AccentGreen, Color.Black, true);
+            btnWriteFlash = CreateStyledButton("[WRITE] เขียนไฟล์ลง ECM (Write Flash)", 268, 26, 250, 42, AccentGreen, Color.Black, true);
             btnWriteFlash.Click += BtnWriteFlash_Click;
 
             pnlActions.Controls.AddRange(new Control[] { btnReadFlash, btnWriteFlash });
@@ -532,10 +532,10 @@ namespace RemixHondaFlash
             cmbMapModelPreset.SelectedIndex = 0;
             pnlTopBar.Controls.Add(cmbMapModelPreset);
 
-            btnLoadBinMap = CreateStyledButton("📂 เปิดไฟล์ BIN", 300, 13, 120, 30, InputBg, TextPrimary);
-            btnLoadXdfMap = CreateStyledButton("📂 โหลดนิยาม XDF", 428, 13, 130, 30, InputBg, TextPrimary);
-            btnSaveBinMap = CreateStyledButton("💾 บันทึกไฟล์จูน (Auto Checksum)", 566, 13, 205, 30, AccentGreen, Color.Black, true);
-            btnFlashDirect = CreateStyledButton("⚡ อัดลงกล่องทันที", 779, 13, 130, 30, AccentCyan, Color.Black, true);
+            btnLoadBinMap = CreateStyledButton("เปิดไฟล์ BIN", 300, 13, 120, 30, InputBg, TextPrimary);
+            btnLoadXdfMap = CreateStyledButton("โหลดนิยาม XDF", 428, 13, 130, 30, InputBg, TextPrimary);
+            btnSaveBinMap = CreateStyledButton("บันทึกไฟล์จูน (Auto Checksum)", 566, 13, 205, 30, AccentGreen, Color.Black, true);
+            btnFlashDirect = CreateStyledButton("อัดลงกล่องทันที (Flash Direct)", 779, 13, 130, 30, AccentCyan, Color.Black, true);
 
             pnlTopBar.Controls.AddRange(new Control[] { btnLoadBinMap, btnLoadXdfMap, btnSaveBinMap, btnFlashDirect });
 
@@ -577,10 +577,10 @@ namespace RemixHondaFlash
                 BackColor = InputBg,
                 ForeColor = TextPrimary,
                 Font = new Font("Segoe UI", 9F),
-                Text = "🔍 ค้นหาตาราง..."
+                Text = "ค้นหาตาราง..."
             };
-            txtSearchTable.Enter += (s, e) => { if (txtSearchTable.Text == "🔍 ค้นหาตาราง...") txtSearchTable.Text = ""; };
-            txtSearchTable.Leave += (s, e) => { if (string.IsNullOrWhiteSpace(txtSearchTable.Text)) txtSearchTable.Text = "🔍 ค้นหาตาราง..."; };
+            txtSearchTable.Enter += (s, e) => { if (txtSearchTable.Text == "ค้นหาตาราง...") txtSearchTable.Text = ""; };
+            txtSearchTable.Leave += (s, e) => { if (string.IsNullOrWhiteSpace(txtSearchTable.Text)) txtSearchTable.Text = "ค้นหาตาราง..."; };
             pnlSidebar.Controls.Add(txtSearchTable);
 
             tvMapTables = new TreeView
@@ -641,9 +641,9 @@ namespace RemixHondaFlash
             };
             pnlWorkToolbar.Controls.Add(lblActiveTableTitle);
 
-            btnView2D = CreateStyledButton("📊 ตาราง 2D (Grid)", 265, 6, 115, 26, AccentCyan, Color.Black, true);
-            btnView3D = CreateStyledButton("🌐 กราฟ 3D (Surface)", 386, 6, 125, 26, InputBg, TextPrimary);
-            btnViewDiff = CreateStyledButton("🔄 เทียบเดิม (Diff)", 517, 6, 110, 26, InputBg, TextPrimary);
+            btnView2D = CreateStyledButton("ตาราง 2D (Grid)", 265, 6, 115, 26, AccentCyan, Color.Black, true);
+            btnView3D = CreateStyledButton("กราฟ 3D (Surface)", 386, 6, 125, 26, InputBg, TextPrimary);
+            btnViewDiff = CreateStyledButton("เทียบเดิม (Diff Compare)", 517, 6, 110, 26, InputBg, TextPrimary);
 
             pnlWorkToolbar.Controls.AddRange(new Control[] { btnView2D, btnView3D, btnViewDiff });
 
@@ -834,7 +834,7 @@ namespace RemixHondaFlash
             txtSearchTable.TextChanged += (s, e) =>
             {
                 string q = txtSearchTable.Text.Trim();
-                if (q == "🔍 ค้นหาตาราง...") q = "";
+                if (q == "ค้นหาตาราง...") q = "";
                 FilterTableTree(q);
             };
 
@@ -1058,7 +1058,7 @@ namespace RemixHondaFlash
             // Constants
             if (mapSession.Definition.Constants.Count > 0)
             {
-                TreeNode constCat = new TreeNode("⚙️ สวิตช์ & ค่าคงที่ (Scalars)") { ForeColor = Color.FromArgb(255, 215, 64) };
+                TreeNode constCat = new TreeNode("สวิตช์ & ค่าคงที่ (Scalars)") { ForeColor = Color.FromArgb(255, 215, 64) };
                 foreach (var c in mapSession.Definition.Constants)
                 {
                     if (!string.IsNullOrEmpty(filter) && c.Title.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
@@ -1149,11 +1149,11 @@ namespace RemixHondaFlash
             btnStartMonitor.Click += BtnStartMonitor_Click;
             pnlMonitorBar.Controls.Add(btnStartMonitor);
 
-            btnPauseMonitor = CreateStyledButton("⏸ หยุดชั่วคราว (Pause)", 178, 24, 155, 32, CardHeaderBg, TextWhite, false);
+            btnPauseMonitor = CreateStyledButton("หยุดชั่วคราว (Pause)", 178, 24, 155, 32, CardHeaderBg, TextWhite, false);
             btnPauseMonitor.Click += BtnPauseMonitor_Click;
             pnlMonitorBar.Controls.Add(btnPauseMonitor);
 
-            btnRecordCsv = CreateStyledButton("⏺ บันทึก Log เป็น CSV", 340, 24, 175, 32, AccentBlue, Color.White, true);
+            btnRecordCsv = CreateStyledButton("บันทึก Data Log (CSV)", 340, 24, 175, 32, AccentBlue, Color.White, true);
             btnRecordCsv.Click += BtnRecordCsv_Click;
             pnlMonitorBar.Controls.Add(btnRecordCsv);
 
@@ -1351,7 +1351,7 @@ namespace RemixHondaFlash
             cbIdleChopLevel.SelectedIndex = 1;
             pnlChop.Controls.Add(cbIdleChopLevel);
 
-            btnApplyIdleChop = CreateStyledButton("⚡ ใส่สูตรเดินหอบลงในไฟล์ (Apply Idle Chop)", 390, 63, 290, 30, Color.FromArgb(255, 109, 0), Color.White, true);
+            btnApplyIdleChop = CreateStyledButton("ใส่สูตรเดินหอบลงในไฟล์ (Apply Idle Chop)", 390, 63, 290, 30, Color.FromArgb(255, 109, 0), Color.White, true);
             btnApplyIdleChop.Click += BtnApplyIdleChop_Click;
             pnlChop.Controls.Add(btnApplyIdleChop);
 
@@ -1402,7 +1402,7 @@ namespace RemixHondaFlash
             cbRevLimit.SelectedIndex = 1;
             pnlRev.Controls.Add(cbRevLimit);
 
-            btnApplyRevLimit = CreateStyledButton("⚡ ปลดรอบเครื่องยนต์ (Patch Limiter)", 390, 63, 290, 30, AccentBlue, Color.White, true);
+            btnApplyRevLimit = CreateStyledButton("ปลดรอบเครื่องยนต์ (Patch Limiter)", 390, 63, 290, 30, AccentBlue, Color.White, true);
             btnApplyRevLimit.Click += BtnApplyRevLimit_Click;
             pnlRev.Controls.Add(btnApplyRevLimit);
 
@@ -1449,7 +1449,7 @@ namespace RemixHondaFlash
             cbStageTune.SelectedIndex = 0;
             pnlStage.Controls.Add(cbStageTune);
 
-            btnApplyStageTune = CreateStyledButton("⚡ ใส่สูตรสเต็ปรถลงในไฟล์ (Apply Stage)", 485, 63, 260, 30, AccentGreen, Color.Black, true);
+            btnApplyStageTune = CreateStyledButton("ใส่สูตรสเต็ปรถลงในไฟล์ (Apply Stage)", 485, 63, 260, 30, AccentGreen, Color.Black, true);
             btnApplyStageTune.Click += BtnApplyStageTune_Click;
             pnlStage.Controls.Add(btnApplyStageTune);
 
@@ -1488,7 +1488,7 @@ namespace RemixHondaFlash
             Panel pnlPreCheck = CreateCardPanel(16, 12, w, 115, "1. ตรวจสอบความพร้อมของรถก่อนแฟลช (Pre-Flash Safety Check)");
             tabDiag.Controls.Add(pnlPreCheck);
 
-            btnPreFlashCheck = CreateStyledButton("🔍 ตรวจสอบความพร้อมของรถก่อนแฟลช", 16, 26, 270, 34, AccentBlue, Color.White, true);
+            btnPreFlashCheck = CreateStyledButton("ตรวจสอบความพร้อมของรถก่อนแฟลช (Pre-Flash Check)", 16, 26, 270, 34, AccentBlue, Color.White, true);
             btnPreFlashCheck.Click += BtnPreFlashCheck_Click;
             pnlPreCheck.Controls.Add(btnPreFlashCheck);
 
@@ -1509,18 +1509,18 @@ namespace RemixHondaFlash
             Panel pnlDtcReset = CreateCardPanel(16, 134, w, 120, "2. โค้ดความผิดปกติและการรีเซ็ตกล่อง (DTC & Adaptations Reset)");
             tabDiag.Controls.Add(pnlDtcReset);
 
-            btnReadDtc = CreateStyledButton("🔍 อ่านโค้ด DTC", 16, 26, 140, 34, CardHeaderBg, TextWhite, true);
+            btnReadDtc = CreateStyledButton("อ่านโค้ด DTC (Read Faults)", 16, 26, 140, 34, CardHeaderBg, TextWhite, true);
             btnReadDtc.Click += BtnReadDtc_Click;
-            btnClearDtc = CreateStyledButton("🗑️ ลบโค้ด (Clear DTC)", 164, 26, 160, 34, AccentRed, Color.White, true);
+            btnClearDtc = CreateStyledButton("ลบโค้ด (Clear DTC)", 164, 26, 160, 34, AccentRed, Color.White, true);
             btnClearDtc.Click += (s, e) => RunAction("ลบโค้ด DTC", () => activeEngine.ClearDTC());
 
-            btnResetTp = CreateStyledButton("🔄 รีเซ็ตลิ้นเร่ง (TP Reset)", 332, 26, 175, 34, Color.FromArgb(0, 200, 83), Color.Black, true);
+            btnResetTp = CreateStyledButton("รีเซ็ตลิ้นเร่ง (TP Reset)", 332, 26, 175, 34, Color.FromArgb(0, 200, 83), Color.Black, true);
             btnResetTp.Click += (s, e) => RunAction("รีเซ็ตตำแหน่งลิ้นเร่ง (TP Reset)", () => activeEngine.ResetThrottlePosition());
 
-            btnResetEcm = CreateStyledButton("⚡ รีเซ็ตกล่อง ECM", 515, 26, 140, 34, Color.FromArgb(255, 145, 0), Color.Black, true);
+            btnResetEcm = CreateStyledButton("รีเซ็ตกล่อง (ECM Reset)", 515, 26, 140, 34, Color.FromArgb(255, 145, 0), Color.Black, true);
             btnResetEcm.Click += (s, e) => RunAction("รีเซ็ต ECM", () => activeEngine.ResetECM());
 
-            btnResetFlashCount = CreateStyledButton("🧼 ล้าง Flash Counter (Shindengen)", 663, 26, 230, 34, AccentPurple, Color.Black, true);
+            btnResetFlashCount = CreateStyledButton("ล้าง Flash Counter (Shindengen)", 663, 26, 230, 34, AccentPurple, Color.Black, true);
             btnResetFlashCount.Click += (s, e) => RunAction("รีเซ็ตแฟลชเคาท์", () => activeEngine.ResetFlashCounterShindengen());
 
             Label lblDtcHelp = new Label
@@ -1536,16 +1536,16 @@ namespace RemixHondaFlash
             Panel pnlActuators = CreateCardPanel(16, 262, w, 110, "3. ทดสอบสั่งงานอุปกรณ์จริง (Active Actuator Tests)");
             tabDiag.Controls.Add(pnlActuators);
 
-            btnTestInjector = CreateStyledButton("🔊 ทดสอบหัวฉีด (Injector)", 16, 26, 185, 34, CardHeaderBg, TextWhite, true);
+            btnTestInjector = CreateStyledButton("ทดสอบหัวฉีด (Injector)", 16, 26, 185, 34, CardHeaderBg, TextWhite, true);
             btnTestInjector.Click += (s, e) => RunActuatorTest(ActuatorType.FuelInjector);
 
-            btnTestFuelPump = CreateStyledButton("⛽ ทดสอบปั๊มติ๊ก (Fuel Pump)", 209, 26, 195, 34, CardHeaderBg, TextWhite, true);
+            btnTestFuelPump = CreateStyledButton("ทดสอบปั๊มติ๊ก (Fuel Pump)", 209, 26, 195, 34, CardHeaderBg, TextWhite, true);
             btnTestFuelPump.Click += (s, e) => RunActuatorTest(ActuatorType.FuelPump);
 
-            btnTestTacho = CreateStyledButton("📟 กวาดเรือนไมล์ (Tacho Sweep)", 412, 26, 205, 34, CardHeaderBg, TextWhite, true);
+            btnTestTacho = CreateStyledButton("กวาดเรือนไมล์ (Tacho Sweep)", 412, 26, 205, 34, CardHeaderBg, TextWhite, true);
             btnTestTacho.Click += (s, e) => RunActuatorTest(ActuatorType.TachometerSweep);
 
-            btnTestSpark = CreateStyledButton("⚡ ทดสอบไฟหัวเทียน (Spark)", 625, 26, 185, 34, CardHeaderBg, TextWhite, true);
+            btnTestSpark = CreateStyledButton("ทดสอบไฟหัวเทียน (Spark)", 625, 26, 185, 34, CardHeaderBg, TextWhite, true);
             btnTestSpark.Click += (s, e) => RunActuatorTest(ActuatorType.IgnitionSparkCoil);
 
             lblActuatorResult = new Label
@@ -1610,7 +1610,7 @@ namespace RemixHondaFlash
                 Size = new Size(Math.Max(100, pnlXdf.ClientSize.Width - 32), 22),
                 ForeColor = TextMuted
             };
-            btnUnlockXdf = CreateStyledButton("🔓 เลือกไฟล์ XDF/ADX เพื่อปลดรหัส...", 16, 56, 260, 36, AccentBlue, Color.White, true);
+            btnUnlockXdf = CreateStyledButton("เลือกไฟล์ XDF/ADX เพื่อปลดรหัส...", 16, 56, 260, 36, AccentBlue, Color.White, true);
             btnUnlockXdf.Click += BtnUnlockXdf_Click;
             pnlXdf.Controls.AddRange(new Control[] { lXdf, btnUnlockXdf });
 
@@ -1624,7 +1624,7 @@ namespace RemixHondaFlash
                 Size = new Size(Math.Max(100, pnlConv.ClientSize.Width - 32), 22),
                 ForeColor = TextMuted
             };
-            btnConvertFile = CreateStyledButton("🔄 เลือกไฟล์ ACG/ECU เพื่อแปลงเป็น BIN...", 16, 56, 300, 36, AccentGreen, Color.Black, true);
+            btnConvertFile = CreateStyledButton("เลือกไฟล์ ACG/ECU เพื่อแปลงเป็น BIN...", 16, 56, 300, 36, AccentGreen, Color.Black, true);
             btnConvertFile.Click += BtnConvertFile_Click;
             pnlConv.Controls.AddRange(new Control[] { lConv, btnConvertFile });
 
@@ -1638,7 +1638,7 @@ namespace RemixHondaFlash
                 Size = new Size(Math.Max(100, pnlCk.ClientSize.Width - 32), 22),
                 ForeColor = TextMuted
             };
-            btnFixChecksumFile = CreateStyledButton("✔ เลือกไฟล์ BIN เพื่อแก้ Checksum...", 16, 56, 280, 36, AccentPurple, Color.Black, true);
+            btnFixChecksumFile = CreateStyledButton("เลือกไฟล์ BIN เพื่อแก้ Checksum...", 16, 56, 280, 36, AccentPurple, Color.Black, true);
             btnFixChecksumFile.Click += BtnFixChecksumFile_Click;
             pnlCk.Controls.AddRange(new Control[] { lCkInfo, btnFixChecksumFile });
 
@@ -1946,11 +1946,11 @@ namespace RemixHondaFlash
                 {
                     if (isCablePlugged)
                     {
-                        LogMessage("🔌 ตรวจพบสายเคเบิ้ล USB: " + hwList[0].CableName + (string.IsNullOrEmpty(hwList[0].SerialNumber) ? "" : " [" + hwList[0].SerialNumber + "]") + " เสียบพร้อมใช้งาน");
+                        LogMessage("[USB CONNECT] ตรวจพบสายเคเบิ้ล USB: " + hwList[0].CableName + (string.IsNullOrEmpty(hwList[0].SerialNumber) ? "" : " [" + hwList[0].SerialNumber + "]") + " เสียบพร้อมใช้งาน");
                     }
                     else
                     {
-                        LogMessage("⚠ ถอดสายเคเบิ้ล USB ออกแล้ว");
+                        LogMessage("[USB DISCONNECT] ถอดสายเคเบิ้ล USB ออกแล้ว");
                     }
                 }
             }
@@ -2435,7 +2435,7 @@ namespace RemixHondaFlash
             if (dataLogger.IsLogging)
             {
                 dataLogger.StopLogging();
-                btnRecordCsv.Text = "⏺ บันทึก Log เป็น CSV";
+                btnRecordCsv.Text = "บันทึก Data Log (CSV)";
                 btnRecordCsv.BackColor = AccentBlue;
                 lblRecordStatus.Text = string.Format("บันทึกเสร็จสิ้น ({0} แถว): {1}", dataLogger.RowCount, Path.GetFileName(dataLogger.FilePath));
                 LogMessage("Data logging stopped. File saved: " + dataLogger.FilePath);
@@ -2450,7 +2450,7 @@ namespace RemixHondaFlash
                     {
                         if (dataLogger.StartLogging(sfd.FileName))
                         {
-                            btnRecordCsv.Text = "⏹ หยุดบันทึก CSV";
+                            btnRecordCsv.Text = "หยุดบันทึก CSV";
                             btnRecordCsv.BackColor = AccentRed;
                             lblRecordStatus.Text = "กำลังบันทึก Log ลงไฟล์: " + Path.GetFileName(sfd.FileName);
                             LogMessage("Data logging started: " + sfd.FileName);
@@ -2589,7 +2589,7 @@ namespace RemixHondaFlash
             }
             else
             {
-                lblIdleChopResult.Text = "❌ " + status;
+                lblIdleChopResult.Text = "[FAIL] " + status;
                 lblIdleChopResult.ForeColor = AccentRed;
             }
         }
@@ -2628,7 +2628,7 @@ namespace RemixHondaFlash
             }
             else
             {
-                lblRevLimitResult.Text = "❌ " + status;
+                lblRevLimitResult.Text = "[FAIL] " + status;
                 lblRevLimitResult.ForeColor = AccentRed;
             }
         }
@@ -2665,7 +2665,7 @@ namespace RemixHondaFlash
             }
             else
             {
-                lblStageTuneResult.Text = "❌ " + status;
+                lblStageTuneResult.Text = "[FAIL] " + status;
                 lblStageTuneResult.ForeColor = AccentRed;
             }
         }
@@ -2688,12 +2688,12 @@ namespace RemixHondaFlash
 
             if (check.IsSafe)
             {
-                sb.AppendLine("\n🎉 สรุปผล: รถและกล่อง ECM อยู่ในสภาวะพร้อมและปลอดภัยสำหรับการแฟลช!");
+                sb.AppendLine("\n[RESULT OK] รถและกล่อง ECM อยู่ในสภาวะพร้อมและปลอดภัยสำหรับการแฟลช!");
                 txtPreFlashStatus.ForeColor = AccentGreen;
             }
             else
             {
-                sb.AppendLine("\n⚠️ สรุปผล: ตรวจพบจุดที่ต้องแก้ไขก่อนแฟลช กรุณาตรวจสอบคำเตือนด้านบน");
+                sb.AppendLine("\n[RESULT WARN] ตรวจพบจุดที่ต้องแก้ไขก่อนแฟลช กรุณาตรวจสอบคำเตือนด้านบน");
                 txtPreFlashStatus.ForeColor = AccentRed;
             }
 
@@ -2715,7 +2715,7 @@ namespace RemixHondaFlash
                 if (dtcs.Count == 0)
                 {
                     LogMessage("DTC Scan: ไม่พบโค้ดความผิดปกติ (ระบบปกติ 100%)");
-                    MessageBox.Show("✅ ไม่พบโค้ดความผิดปกติค้างในกล่อง ECM (ระบบสะอาด 100%)", "DTC Scan", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("[OK] ไม่พบโค้ดความผิดปกติค้างในกล่อง ECM (ระบบสะอาด 100%)", "DTC Scan", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
