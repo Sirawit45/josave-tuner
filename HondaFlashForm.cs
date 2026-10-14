@@ -22,6 +22,10 @@ namespace RemixHondaFlash
         private static readonly Color TextWhite = Color.FromArgb(240, 246, 252);
         private static readonly Color TextMuted = Color.FromArgb(144, 164, 174);
         private static readonly Color BorderColor = Color.FromArgb(44, 57, 75);
+        private static readonly Color AccentCyan = Color.FromArgb(0, 229, 255);
+        private static readonly Color TextPrimary = Color.FromArgb(240, 246, 252);
+        private static readonly Color TextSecondary = Color.FromArgb(144, 164, 174);
+        private static readonly Color InputBg = Color.FromArgb(16, 22, 32);
 
         // Header controls
         private Label lblAppTitle;
@@ -115,6 +119,25 @@ namespace RemixHondaFlash
         private Button btnTestSpark;
         private Label lblActuatorResult;
         private TextBox txtLog;
+
+        // Map Editor Tab Controls
+        private TabPage tabMapEditor;
+        private MapTuningSession mapSession = new MapTuningSession();
+        private TableGridControl gridEditor;
+        private Surface3DGraphControl graph3D;
+        private TreeView tvMapTables;
+        private TextBox txtSearchTable;
+        private ComboBox cmbMapModelPreset;
+        private Button btnLoadBinMap;
+        private Button btnLoadXdfMap;
+        private Button btnSaveBinMap;
+        private Button btnFlashDirect;
+        private Label lblMapBinStatus;
+        private Label lblActiveTableTitle;
+        private Label lblSelectionStats;
+        private Button btnView2D;
+        private Button btnView3D;
+        private Button btnViewDiff;
 
         // Tools Tab Controls
         private Button btnUnlockXdf;
@@ -245,16 +268,18 @@ namespace RemixHondaFlash
             tabControl.BringToFront();
 
             tabFlasher = new TabPage("⚡ ECU Flasher (หน้าหลัก แฟลช / ดูดไฟล์)") { BackColor = BgDark };
+            tabMapEditor = new TabPage("📈 ตารางจูน 2D & 3D (ECU Map Editor)") { BackColor = BgDark };
             tabLiveMonitor = new TabPage("📊 Live Monitor (มาตรวัดสด & บันทึก Log)") { BackColor = BgDark };
             tabQuickTune = new TabPage("🚀 สูตรจูนด่วน 1-Click (เดินหอบ & ปลดรอบ)") { BackColor = BgDark };
             tabDiag = new TabPage("🔧 Diagnostics & Tests (วิเคราะห์ & สั่งงาน)") { BackColor = BgDark };
             tabTools = new TabPage("🛠 Tuner Tools (เครื่องมือช่างจูน)") { BackColor = BgDark };
             tabDatabase = new TabPage("📚 Model Database (ฐานข้อมูล 265+ รุ่น)") { BackColor = BgDark };
 
-            tabControl.TabPages.AddRange(new TabPage[] { tabFlasher, tabLiveMonitor, tabQuickTune, tabDiag, tabTools, tabDatabase });
+            tabControl.TabPages.AddRange(new TabPage[] { tabFlasher, tabMapEditor, tabLiveMonitor, tabQuickTune, tabDiag, tabTools, tabDatabase });
 
             // Setup each tab
             SetupFlasherTab();
+            SetupMapEditorTab();
             SetupLiveMonitorTab();
             SetupQuickTuneTab();
             SetupDiagTab();
@@ -462,7 +487,655 @@ namespace RemixHondaFlash
 
         #endregion
 
-        #region Tab 2: Live Monitor Setup
+        #region Tab 2: ECU Map Editor (2D Table & 3D Surface Mesh)
+
+        private void SetupMapEditorTab()
+        {
+            // 1. Top Bar Panel (Header, Model Presets, File Actions)
+            Panel pnlTopBar = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 56,
+                BackColor = CardBg,
+                Padding = new Padding(10, 8, 10, 8)
+            };
+            tabMapEditor.Controls.Add(pnlTopBar);
+
+            Label lblPreset = new Label
+            {
+                Text = "โมเดลรถ:",
+                Location = new Point(10, 18),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = TextSecondary
+            };
+            pnlTopBar.Controls.Add(lblPreset);
+
+            cmbMapModelPreset = new ComboBox
+            {
+                Location = new Point(72, 14),
+                Width = 220,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                BackColor = InputBg,
+                ForeColor = TextPrimary,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular)
+            };
+            cmbMapModelPreset.Items.AddRange(new object[] {
+                "Wave 110i LED 2021-2022 (K2J)",
+                "Wave 125i (K73)",
+                "PCX 160 (K1Z)",
+                "ADV 160 (K0W)",
+                "Forza 350 (K1B)",
+                "Giorno+ (K3M)",
+                "Lead 125 (K2T)"
+            });
+            cmbMapModelPreset.SelectedIndex = 0;
+            pnlTopBar.Controls.Add(cmbMapModelPreset);
+
+            btnLoadBinMap = CreateStyledButton("📂 เปิดไฟล์ BIN", 300, 13, 120, 30, InputBg, TextPrimary);
+            btnLoadXdfMap = CreateStyledButton("📂 โหลดนิยาม XDF", 428, 13, 130, 30, InputBg, TextPrimary);
+            btnSaveBinMap = CreateStyledButton("💾 บันทึกไฟล์จูน (Auto Checksum)", 566, 13, 205, 30, AccentGreen, Color.Black, true);
+            btnFlashDirect = CreateStyledButton("⚡ อัดลงกล่องทันที", 779, 13, 130, 30, AccentCyan, Color.Black, true);
+
+            pnlTopBar.Controls.AddRange(new Control[] { btnLoadBinMap, btnLoadXdfMap, btnSaveBinMap, btnFlashDirect });
+
+            // 2. Main Work Area Container
+            Panel pnlMainArea = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = BgDark,
+                Padding = new Padding(8)
+            };
+            tabMapEditor.Controls.Add(pnlMainArea);
+            pnlMainArea.BringToFront();
+
+            // Left Sidebar: Categories & Tables Tree
+            Panel pnlSidebar = new Panel
+            {
+                Dock = DockStyle.Left,
+                Width = 260,
+                BackColor = CardBg,
+                Padding = new Padding(6)
+            };
+            pnlMainArea.Controls.Add(pnlSidebar);
+
+            Label lblTreeHead = new Label
+            {
+                Text = "รายการตารางจูน (Map List)",
+                Dock = DockStyle.Top,
+                Height = 24,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = AccentCyan,
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            pnlSidebar.Controls.Add(lblTreeHead);
+
+            txtSearchTable = new TextBox
+            {
+                Dock = DockStyle.Top,
+                Height = 24,
+                BackColor = InputBg,
+                ForeColor = TextPrimary,
+                Font = new Font("Segoe UI", 9F),
+                Text = "🔍 ค้นหาตาราง..."
+            };
+            txtSearchTable.Enter += (s, e) => { if (txtSearchTable.Text == "🔍 ค้นหาตาราง...") txtSearchTable.Text = ""; };
+            txtSearchTable.Leave += (s, e) => { if (string.IsNullOrWhiteSpace(txtSearchTable.Text)) txtSearchTable.Text = "🔍 ค้นหาตาราง..."; };
+            pnlSidebar.Controls.Add(txtSearchTable);
+
+            tvMapTables = new TreeView
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(16, 20, 30),
+                ForeColor = TextPrimary,
+                LineColor = Color.FromArgb(60, 75, 100),
+                Font = new Font("Segoe UI", 9F),
+                BorderStyle = BorderStyle.None,
+                HideSelection = false
+            };
+            pnlSidebar.Controls.Add(tvMapTables);
+            tvMapTables.BringToFront();
+
+            // Status strip at bottom of sidebar
+            lblMapBinStatus = new Label
+            {
+                Dock = DockStyle.Bottom,
+                Height = 40,
+                BackColor = Color.FromArgb(12, 15, 22),
+                ForeColor = TextSecondary,
+                Font = new Font("Segoe UI", 8F),
+                Text = "สถานะ: พร้อมใช้งาน\nChecksum: อัตโนมัติ (ปลอดภัย)",
+                TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(4)
+            };
+            pnlSidebar.Controls.Add(lblMapBinStatus);
+
+            // Right Area: Workspace
+            Panel pnlWorkspace = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = BgDark,
+                Padding = new Padding(6, 0, 0, 0)
+            };
+            pnlMainArea.Controls.Add(pnlWorkspace);
+            pnlWorkspace.BringToFront();
+
+            // Workspace Toolbar
+            Panel pnlWorkToolbar = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 74,
+                BackColor = CardBg,
+                Padding = new Padding(8, 6, 8, 6)
+            };
+            pnlWorkspace.Controls.Add(pnlWorkToolbar);
+
+            // Row 1 of Toolbar: Table title, View toggles, AFR references
+            lblActiveTableTitle = new Label
+            {
+                Location = new Point(8, 8),
+                Size = new Size(250, 24),
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                ForeColor = AccentCyan,
+                Text = "น้ำมัน 1-4 (Fuel In-Gear) [29x29]"
+            };
+            pnlWorkToolbar.Controls.Add(lblActiveTableTitle);
+
+            btnView2D = CreateStyledButton("📊 ตาราง 2D (Grid)", 265, 6, 115, 26, AccentCyan, Color.Black, true);
+            btnView3D = CreateStyledButton("🌐 กราฟ 3D (Surface)", 386, 6, 125, 26, InputBg, TextPrimary);
+            btnViewDiff = CreateStyledButton("🔄 เทียบเดิม (Diff)", 517, 6, 110, 26, InputBg, TextPrimary);
+
+            pnlWorkToolbar.Controls.AddRange(new Control[] { btnView2D, btnView3D, btnViewDiff });
+
+            Label lblAfrTitle = new Label
+            {
+                Text = "AFR Target:",
+                Location = new Point(635, 10),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Bold),
+                ForeColor = TextSecondary
+            };
+            pnlWorkToolbar.Controls.Add(lblAfrTitle);
+
+            int afrX = 710;
+            string[] afrVals = new string[] { "12.0", "12.5", "13.2", "14.0", "14.7" };
+            foreach (var afr in afrVals)
+            {
+                Button btnAfr = CreateStyledButton(afr, afrX, 7, 42, 24, Color.FromArgb(24, 32, 48), Color.FromArgb(0, 229, 255));
+                btnAfr.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
+                btnAfr.Click += (s, e) =>
+                {
+                    float targetAfr;
+                    if (float.TryParse(afr, out targetAfr))
+                    {
+                        float ratio = 14.7f / targetAfr;
+                        mapSession.Scale(ratio);
+                        gridEditor.Invalidate();
+                        graph3D.Invalidate();
+                        UpdateSelectionStats();
+                    }
+                };
+                pnlWorkToolbar.Controls.Add(btnAfr);
+                afrX += 46;
+            }
+
+            // Row 2 of Toolbar: Math operations & Selection stats
+            int toolX = 8;
+            Action<string, Action> addMathBtn = (txt, action) =>
+            {
+                Button b = CreateStyledButton(txt, toolX, 38, 50, 26, InputBg, TextPrimary);
+                b.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
+                b.Click += (s, e) =>
+                {
+                    action();
+                    gridEditor.Invalidate();
+                    graph3D.Invalidate();
+                    UpdateSelectionStats();
+                };
+                pnlWorkToolbar.Controls.Add(b);
+                toolX += 54;
+            };
+
+            addMathBtn("+1%", () => mapSession.AddPercent(1f));
+            addMathBtn("+5%", () => mapSession.AddPercent(5f));
+            addMathBtn("-1%", () => mapSession.AddPercent(-1f));
+            addMathBtn("-5%", () => mapSession.AddPercent(-5f));
+            addMathBtn("+0.1", () => mapSession.AddOffset(0.1f));
+            addMathBtn("-0.1", () => mapSession.AddOffset(-0.1f));
+
+            Button btnSmooth = CreateStyledButton("เกลี่ย Smooth", toolX, 38, 92, 26, InputBg, TextPrimary);
+            btnSmooth.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
+            btnSmooth.Click += (s, e) =>
+            {
+                mapSession.Smooth(0.5f);
+                gridEditor.Invalidate();
+                graph3D.Invalidate();
+                UpdateSelectionStats();
+            };
+            pnlWorkToolbar.Controls.Add(btnSmooth);
+            toolX += 96;
+
+            Button btnInterpH = CreateStyledButton("เกลี่ยแนวนอน", toolX, 38, 88, 26, InputBg, TextPrimary);
+            btnInterpH.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
+            btnInterpH.Click += (s, e) =>
+            {
+                mapSession.InterpolateHorizontal();
+                gridEditor.Invalidate();
+                graph3D.Invalidate();
+                UpdateSelectionStats();
+            };
+            pnlWorkToolbar.Controls.Add(btnInterpH);
+            toolX += 92;
+
+            Button btnInterpV = CreateStyledButton("เกลี่ยแนวตั้ง", toolX, 38, 88, 26, InputBg, TextPrimary);
+            btnInterpV.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
+            btnInterpV.Click += (s, e) =>
+            {
+                mapSession.InterpolateVertical();
+                gridEditor.Invalidate();
+                graph3D.Invalidate();
+                UpdateSelectionStats();
+            };
+            pnlWorkToolbar.Controls.Add(btnInterpV);
+            toolX += 92;
+
+            Button btnUndo = CreateStyledButton("↺ ย้อนกลับ", toolX, 38, 76, 26, InputBg, TextPrimary);
+            btnUndo.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
+            btnUndo.Click += (s, e) =>
+            {
+                if (mapSession.Undo())
+                {
+                    gridEditor.Invalidate();
+                    graph3D.Invalidate();
+                    UpdateSelectionStats();
+                }
+            };
+            pnlWorkToolbar.Controls.Add(btnUndo);
+            toolX += 80;
+
+            lblSelectionStats = new Label
+            {
+                Location = new Point(toolX + 6, 42),
+                Size = new Size(380, 20),
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                ForeColor = AccentGreen,
+                Text = "ค่าต่ำสุด: 0.000 | สูงสุด: 0.000 | ค่าเฉลี่ย: 0.000 | เลือก: 1 เซลล์"
+            };
+            pnlWorkToolbar.Controls.Add(lblSelectionStats);
+
+            // Center Panel: Controls Container
+            Panel pnlDisplayHost = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(16, 20, 29)
+            };
+            pnlWorkspace.Controls.Add(pnlDisplayHost);
+            pnlDisplayHost.BringToFront();
+
+            gridEditor = new TableGridControl
+            {
+                Dock = DockStyle.Fill,
+                Visible = true
+            };
+            gridEditor.SelectionChanged += (s, e) => UpdateSelectionStats();
+            pnlDisplayHost.Controls.Add(gridEditor);
+
+            graph3D = new Surface3DGraphControl
+            {
+                Dock = DockStyle.Fill,
+                Visible = false
+            };
+            pnlDisplayHost.Controls.Add(graph3D);
+
+            // Wire up view mode switcher
+            btnView2D.Click += (s, e) =>
+            {
+                gridEditor.Visible = true;
+                gridEditor.ShowDiffMode = false;
+                graph3D.Visible = false;
+                btnView2D.BackColor = AccentCyan; btnView2D.ForeColor = Color.Black;
+                btnView3D.BackColor = InputBg; btnView3D.ForeColor = TextPrimary;
+                btnViewDiff.BackColor = InputBg; btnViewDiff.ForeColor = TextPrimary;
+                gridEditor.Invalidate();
+            };
+
+            btnView3D.Click += (s, e) =>
+            {
+                gridEditor.Visible = false;
+                graph3D.Visible = true;
+                btnView2D.BackColor = InputBg; btnView2D.ForeColor = TextPrimary;
+                btnView3D.BackColor = AccentCyan; btnView3D.ForeColor = Color.Black;
+                btnViewDiff.BackColor = InputBg; btnViewDiff.ForeColor = TextPrimary;
+                graph3D.Invalidate();
+            };
+
+            btnViewDiff.Click += (s, e) =>
+            {
+                gridEditor.Visible = true;
+                gridEditor.ShowDiffMode = !gridEditor.ShowDiffMode;
+                graph3D.Visible = false;
+                btnViewDiff.BackColor = gridEditor.ShowDiffMode ? AccentGreen : InputBg;
+                btnViewDiff.ForeColor = gridEditor.ShowDiffMode ? Color.Black : TextPrimary;
+                gridEditor.Invalidate();
+            };
+
+            // Wire up buttons
+            btnLoadBinMap.Click += (s, e) => LoadBinForMapTuning();
+            btnLoadXdfMap.Click += (s, e) => LoadXdfForMapTuning();
+            btnSaveBinMap.Click += (s, e) => SaveTunedBinFile();
+            btnFlashDirect.Click += (s, e) => FlashDirectFromMap();
+
+            cmbMapModelPreset.SelectedIndexChanged += (s, e) =>
+            {
+                string preset = (cmbMapModelPreset.SelectedItem != null) ? cmbMapModelPreset.SelectedItem.ToString() : "Wave 110i LED";
+                LoadPresetDefinition(preset);
+            };
+
+            txtSearchTable.TextChanged += (s, e) =>
+            {
+                string q = txtSearchTable.Text.Trim();
+                if (q == "🔍 ค้นหาตาราง...") q = "";
+                FilterTableTree(q);
+            };
+
+            tvMapTables.AfterSelect += (s, e) =>
+            {
+                if (e.Node != null)
+                {
+                    XdfTable tbl = e.Node.Tag as XdfTable;
+                    if (tbl != null)
+                    {
+                        mapSession.SelectTable(tbl);
+                        lblActiveTableTitle.Text = tbl.Title + " [" + tbl.Rows + "x" + tbl.Cols + "]";
+                        gridEditor.UpdateScrollbars();
+                        gridEditor.Invalidate();
+                        graph3D.Invalidate();
+                        UpdateSelectionStats();
+                    }
+                }
+            };
+
+            // Auto-load default template and sample file if available
+            LoadPresetDefinition("Wave 110i LED 2021-2022 (K2J)");
+        }
+
+        private void LoadPresetDefinition(string modelName)
+        {
+            XdfDefinition def = null;
+
+            // Check if there is an exact XDF on disk for Wave 110i
+            string sampleXdf = @"C:\Users\Jo_save\Desktop\realtime\XDF\64KB\38770-K2J-T01_8000-0_WAVE 110i 2021-2022.xdf";
+            if (modelName.Contains("Wave 110i") && File.Exists(sampleXdf))
+            {
+                def = XdfDefinition.LoadFromFile(sampleXdf);
+            }
+
+            if (def == null || def.Tables.Count == 0)
+            {
+                def = XdfDefinition.GetBuiltinDefinition(modelName);
+            }
+
+            mapSession.LoadDefinition(def);
+
+            // Auto-load sample BIN if available and no BIN currently loaded
+            string sampleBin = @"C:\Users\Jo_save\Desktop\realtime\BIN\64KB\38770-K2J-T01_8000-0_WAVE 110i 2021-2022.bin";
+            if (mapSession.ActiveBin == null)
+            {
+                if (loadedBin != null)
+                {
+                    mapSession.LoadBin(loadedBin, txtBinPath.Text);
+                }
+                else if (File.Exists(sampleBin))
+                {
+                    try
+                    {
+                        byte[] bytes = File.ReadAllBytes(sampleBin);
+                        mapSession.LoadBin(bytes, sampleBin);
+                    }
+                    catch { }
+                }
+            }
+
+            gridEditor.BindSession(mapSession);
+            graph3D.BindSession(mapSession);
+            PopulateTableTree();
+            UpdateSelectionStats();
+
+            if (mapSession.ActiveBin != null)
+            {
+                lblMapBinStatus.Text = string.Format("ไฟล์: {0} ({1:N0} KB)\nChecksum: อัตโนมัติ (พร้อมแฟลช)",
+                    Path.GetFileName(mapSession.BinFilePath ?? "Sample.bin"), mapSession.ActiveBin.Length / 1024);
+            }
+        }
+
+        private void LoadBinForMapTuning()
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Honda ECU Binary (*.bin)|*.bin|All Files (*.*)|*.*";
+                ofd.Title = "เลือกไฟล์ BIN สำหรับจูนตาราง (Open BIN Map)";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    byte[] bytes = File.ReadAllBytes(ofd.FileName);
+                    mapSession.LoadBin(bytes, ofd.FileName);
+
+                    // Also set into main Flasher tab
+                    loadedBin = bytes;
+                    txtBinPath.Text = ofd.FileName;
+                    lblFileSize.Text = string.Format("{0:N0} Bytes ({1} KB)", bytes.Length, bytes.Length / 1024);
+
+                    gridEditor.BindSession(mapSession);
+                    graph3D.BindSession(mapSession);
+                    UpdateSelectionStats();
+
+                    lblMapBinStatus.Text = string.Format("ไฟล์: {0} ({1:N0} KB)\nChecksum: อัตโนมัติ (พร้อมแฟลช)",
+                        Path.GetFileName(ofd.FileName), bytes.Length / 1024);
+                }
+            }
+        }
+
+        private void LoadXdfForMapTuning()
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "TunerPro Definition (*.xdf)|*.xdf|All Files (*.*)|*.*";
+                ofd.Title = "โหลดนิยามตารางจูน TunerPro XDF (Open XDF)";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    XdfDefinition def = XdfDefinition.LoadFromFile(ofd.FileName);
+                    if (def != null && def.Tables.Count > 0)
+                    {
+                        mapSession.LoadDefinition(def, ofd.FileName);
+                        gridEditor.BindSession(mapSession);
+                        graph3D.BindSession(mapSession);
+                        PopulateTableTree();
+                        UpdateSelectionStats();
+                        MessageBox.Show(string.Format("โหลดนิยาม XDF สำเร็จ!\nพบตารางทั้งหมด {0} ตาราง และค่าคงที่ {1} รายการ",
+                            def.Tables.Count, def.Constants.Count), "โหลดสำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("ไม่สามารถอ่านโครงสร้างตารางจากไฟล์ XDF นี้ได้", "ผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+            }
+        }
+
+        private void SaveTunedBinFile()
+        {
+            if (mapSession.ActiveBin == null)
+            {
+                MessageBox.Show("กรุณาเปิดไฟล์ BIN ก่อนทำการบันทึก", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "Honda Tuned BIN (*.bin)|*.bin|All Files (*.*)|*.*";
+                sfd.Title = "บันทึกไฟล์จูน (Save Tuned BIN with Auto-Checksum)";
+                sfd.FileName = Path.GetFileNameWithoutExtension(mapSession.BinFilePath ?? "Tuned_ECU") + "_Tuned.bin";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    int ckOff;
+                    if (mapSession.SaveTunedBin(sfd.FileName, out ckOff))
+                    {
+                        string msg = string.Format("บันทึกไฟล์จูนเรียบร้อยแล้ว!\nตำแหน่งไฟล์: {0}\n\n[ความปลอดภัย] ระบบคำนวณและแก้ Checksum อัตโนมัติเรียบร้อยแล้ว (Offset: 0x{1:X})\nสามารถนำไปอัดลงกล่อง ECU ได้ทันทีโดยไม่ล็อค",
+                            sfd.FileName, ckOff);
+                        MessageBox.Show(msg, "บันทึกสำเร็จ (Checksum Auto-Fixed)", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        // Update flasher path
+                        txtBinPath.Text = sfd.FileName;
+                        loadedBin = mapSession.ActiveBin;
+                    }
+                    else
+                    {
+                        MessageBox.Show("เกิดข้อผิดพลาดในการบันทึกไฟล์", "ผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void FlashDirectFromMap()
+        {
+            if (mapSession.ActiveBin == null)
+            {
+                MessageBox.Show("กรุณาเปิดไฟล์ BIN และปรับแต่งตารางก่อนอัดลงกล่อง", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Save changes to loadedBin
+            loadedBin = (byte[])mapSession.ActiveBin.Clone();
+
+            // Recalculate checksum
+            if (loadedBin.Length == 0x10000) ChecksumEngine.FixKeihinChecksum(loadedBin, 0x7600);
+            else if (loadedBin.Length == 0x20000) ChecksumEngine.FixKeihinChecksum(loadedBin, 0xDFEF);
+            else if (loadedBin.Length == 0x40000) ChecksumEngine.FixKeihinChecksum(loadedBin, 0x3FFF8);
+            else if (loadedBin.Length == 0xC000 || loadedBin.Length == 0xE000)
+            {
+                int shCk;
+                ChecksumEngine.FixShindengenChecksum(loadedBin, out shCk);
+            }
+
+            // Switch to Flasher tab
+            tabControl.SelectedTab = tabFlasher;
+            LogMessage("[MAP EDITOR] ถ่ายโอนข้อมูลจากตารางจูน 2D/3D ไปยัง Flasher พร้อม Auto-Checksum เรียบร้อยแล้ว!");
+            LogMessage("[MAP EDITOR] กรุณากด 'เขียน Flash (อัดไฟล์)' เพื่อเริ่มกระบวนการแฟลชลงกล่อง");
+        }
+
+        private void PopulateTableTree(string filter = "")
+        {
+            tvMapTables.Nodes.Clear();
+            if (mapSession.Definition == null) return;
+
+            Dictionary<string, TreeNode> catNodes = new Dictionary<string, TreeNode>();
+
+            foreach (var tbl in mapSession.Definition.Tables)
+            {
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    if (tbl.Title.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0 &&
+                        tbl.CategoryName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
+                        continue;
+                }
+
+                string cat = string.IsNullOrEmpty(tbl.CategoryName) ? "ทั่วไป (General)" : tbl.CategoryName;
+                if (!catNodes.ContainsKey(cat))
+                {
+                    TreeNode cn = new TreeNode(cat) { ForeColor = AccentCyan };
+                    catNodes[cat] = cn;
+                    tvMapTables.Nodes.Add(cn);
+                }
+
+                TreeNode tn = new TreeNode(string.Format("{0} [{1}x{2}]", tbl.Title, tbl.Rows, tbl.Cols))
+                {
+                    Tag = tbl,
+                    ForeColor = TextPrimary
+                };
+                catNodes[cat].Nodes.Add(tn);
+            }
+
+            // Constants
+            if (mapSession.Definition.Constants.Count > 0)
+            {
+                TreeNode constCat = new TreeNode("⚙️ สวิตช์ & ค่าคงที่ (Scalars)") { ForeColor = Color.FromArgb(255, 215, 64) };
+                foreach (var c in mapSession.Definition.Constants)
+                {
+                    if (!string.IsNullOrEmpty(filter) && c.Title.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
+                        continue;
+
+                    TreeNode cn = new TreeNode(c.Title + " (" + c.Units + ")")
+                    {
+                        Tag = c,
+                        ForeColor = TextSecondary
+                    };
+                    constCat.Nodes.Add(cn);
+                }
+                if (constCat.Nodes.Count > 0) tvMapTables.Nodes.Add(constCat);
+            }
+
+            tvMapTables.ExpandAll();
+
+            if (tvMapTables.Nodes.Count > 0 && tvMapTables.Nodes[0].Nodes.Count > 0)
+            {
+                tvMapTables.SelectedNode = tvMapTables.Nodes[0].Nodes[0];
+            }
+        }
+
+        private void FilterTableTree(string query)
+        {
+            PopulateTableTree(query);
+        }
+
+        private void UpdateSelectionStats()
+        {
+            if (mapSession.ActiveTable == null || mapSession.ActiveBin == null)
+            {
+                lblSelectionStats.Text = "ค่าต่ำสุด: 0.000 | สูงสุด: 0.000 | ค่าเฉลี่ย: 0.000 | เลือก: 0 เซลล์";
+                return;
+            }
+
+            XdfTable tbl = mapSession.ActiveTable;
+            byte[] bin = mapSession.ActiveBin;
+            Rectangle sel = mapSession.SelectedRange;
+
+            int startR = Math.Max(0, sel.Y);
+            int endR = Math.Min(tbl.Rows - 1, sel.Bottom - 1);
+            int startC = Math.Max(0, sel.X);
+            int endC = Math.Min(tbl.Cols - 1, sel.Right - 1);
+
+            float min = float.MaxValue;
+            float max = float.MinValue;
+            float sum = 0f;
+            int count = 0;
+
+            for (int r = startR; r <= endR; r++)
+            {
+                for (int c = startC; c <= endC; c++)
+                {
+                    float v = tbl.GetDisplayValue(bin, r, c);
+                    if (v < min) min = v;
+                    if (v > max) max = v;
+                    sum += v;
+                    count++;
+                }
+            }
+
+            if (count == 0)
+            {
+                lblSelectionStats.Text = "เลือก: 0 เซลล์";
+            }
+            else
+            {
+                float avg = sum / count;
+                lblSelectionStats.Text = string.Format("ต่ำสุด: {0:F3} | สูงสุด: {1:F3} | เฉลี่ย: {2:F3} | เลือก: {3} เซลล์",
+                    min, max, avg, count);
+            }
+        }
+
+        #endregion
+
+        #region Tab 3: Live Monitor Setup
 
         private void SetupLiveMonitorTab()
         {
@@ -1752,6 +2425,8 @@ namespace RemixHondaFlash
             btnPauseMonitor.ForeColor = TextWhite;
             lblRecordStatus.Text = "สถานะ: หยุดอ่านค่าชั่วคราว (Paused)";
             lblRecordStatus.ForeColor = Color.FromArgb(255, 171, 0);
+            if (gridEditor != null) gridEditor.ClearLivePosition();
+            if (graph3D != null) graph3D.ClearLivePosition();
             LogMessage("Live Telemetry monitor paused.");
         }
 
@@ -1834,6 +2509,16 @@ namespace RemixHondaFlash
                 if (pnlWaveform != null && !pnlWaveform.IsDisposed)
                 {
                     pnlWaveform.Invalidate();
+                }
+
+                // Real-time cell tracking on 2D table & 3D surface map
+                if (gridEditor != null && !gridEditor.IsDisposed)
+                {
+                    gridEditor.SetLiveEnginePosition(data.EngineRpm, (float)data.ThrottleDegrees);
+                }
+                if (graph3D != null && !graph3D.IsDisposed)
+                {
+                    graph3D.SetLiveEnginePosition(data.EngineRpm, (float)data.ThrottleDegrees);
                 }
             }
         }

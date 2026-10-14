@@ -149,3 +149,38 @@ This skill contains deep domain knowledge for communicating with, dumping (readi
 3. **DTC Diagnostic Faults**: Verify 0 active faults before flashing.
 4. **Hardware Cable Link**: Real-time USB Hot-Plug detection (FTDI D2XX + COM).
 
+---
+
+## 11. TunerPro RT XDF Architecture & 2D/3D Map Tuning Engine
+
+### XDF XML Structure & Thai Entity Decoding
+- **Encoding Quirks**: TunerPro encodes non-ASCII (Thai) characters as decimal HTML entities `&#161;&#210;&#195;...`. These correspond to raw bytes in Windows-874 / TIS-620. Decode by grouping consecutive entity bytes and parsing with `Encoding.GetEncoding(874)`.
+- **Table Definition (`XDFTABLE`)**:
+  - `XDFAXIS id="x"`: Columns (typically Throttle Position TPS % or Manifold Pressure MAP kPa).
+  - `XDFAXIS id="y"`: Rows (typically Engine Speed RPM).
+  - `XDFAXIS id="z"`: Data matrix (16-bit uint for fuel pulse width ms, 8-bit uint for ignition advance °BTDC).
+- **Mathematical Transformation Formulas**:
+  - Fuel Table: Forward $Display = \frac{Raw}{1000}$, Reverse $Raw = \text{round}(Display \times 1000)$.
+  - Ignition Table: Forward $Display = Raw \times 0.3572 - 15.72$, Reverse $Raw = \text{round}(\frac{Display + 15.72}{0.3572})$.
+  - TPS %: Forward $Display = Raw \times 0.0976$.
+- **Real-Time Live Tracing**:
+  - Correlates incoming telemetry (`LiveTelemetryData.EngineRpm` and `ThrottleDegrees`) to the closest row and column indices.
+  - Highlights active cell in 2D Grid with pulsating Neon Green border and renders a 3D locator beacon over the 3D surface mesh.
+
+---
+
+## 12. Cross-Platform Mobile Architecture (iOS & Android Deployment Plan)
+
+### The Apple MFi Barrier & Wireless K-Line Solution
+- **Android**: Supports direct USB OTG with FTDI FT232R / CH340 / CP2102 via Android USB Host API (`UsbManager`). No root or special licensing required.
+- **iOS**: Apple strictly prohibits non-MFi USB-to-serial communication over Lightning / USB-C.
+- **Universal Solution (Dongle)**: Wireless K-Line Adapter based on **ESP32-S3 + L9637D/MC33660** transceiver:
+  1. Microcontroller handles 70 ms fast-init pulse and half-duplex echo cancellation locally.
+  2. Data stream bridged over **Bluetooth Low Energy (BLE 4.0/5.0 GATT UART)** or **Wi-Fi SoftAP (TCP Socket)**.
+  3. iOS CoreBluetooth API connects natively without Apple MFi restrictions.
+
+### Recommended Cross-Platform Framework
+- **Flutter (Dart)** or **.NET MAUI (C#)**:
+  - *.NET MAUI*: Direct reuse of 100% pure C# core logic (`HondaFlashCore.cs`, `EcuMapDefinition.cs`, `EcmDatabase.cs`).
+  - *Flutter*: Superior 120 FPS graphics rendering for 3D Surface Maps and high-speed gauge cockpits on mobile screens.
+

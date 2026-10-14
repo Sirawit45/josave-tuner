@@ -62,6 +62,13 @@ namespace RemixHondaFlash
             RunTest("Live Telemetry: High-Speed K-Line Stream & CSV Logger", TestLiveTelemetryAndLogger);
             RunTest("Diagnostics: Actuator Tests & Pre-Flash Safety Check", TestActuatorsAndPreFlashCheck);
 
+            // 9. TunerPro XDF & 2D/3D Map Tuning Studio Tests
+            RunTest("XDF Engine: TunerPro XML Parser & Thai Entity Decoding", TestXdfParserAndThaiDecoding);
+            RunTest("Map Studio: 2D Table Matrix & Bidirectional Formulas", TestTableMatrixAndFormulas);
+            RunTest("Map Studio: Mathematical Transforms (Scale, Offset, Smooth)", TestMapMathTransforms);
+            RunTest("Map Studio: Interpolation Engine (Horizontal & Vertical)", TestMapInterpolation);
+            RunTest("Map Studio: Save Tuned Binary & Checksum Auto-Correction", TestSaveTunedBinAndChecksum);
+
             totalSw.Stop();
 
             Console.WriteLine("\n===============================================================================");
@@ -561,6 +568,123 @@ namespace RemixHondaFlash
                 var check = engine.PerformPreFlashSafetyCheck();
                 Assert(check != null, "PreFlashCheck returned null");
                 Assert(check.CheckMessages.Count > 0, "PreFlashCheck messages empty");
+            }
+        }
+
+        #endregion
+
+        #region 9. TunerPro XDF & 2D/3D Map Tuning Studio Tests
+
+        private static void TestXdfParserAndThaiDecoding()
+        {
+            // Test Thai entity decoding
+            string entityString = "Fuel (&#161;&#210;&#195;&#168;&#232;&#210;&#194;&#185;&#233;&#211;&#193;&#209;&#185;&#227;&#185;&#224;&#161;&#213;&#194;&#195;&#236;)";
+            string decoded = XdfDefinition.DecodeThaiEntities(entityString);
+            Assert(decoded.Contains("การจ่ายน้ำมันในเกียร์"), "Thai entity decoding failed: " + decoded);
+
+            // Test parsing sample XDF or builtin
+            XdfDefinition builtin = XdfDefinition.GetBuiltinDefinition("Wave 110i LED 2021-2022 (K2J)");
+            Assert(builtin != null, "Builtin definition is null");
+            Assert(builtin.Tables.Count >= 4, "Builtin definition missing core tables");
+            Assert(builtin.Tables[0].Rows == 29 && builtin.Tables[0].Cols == 29, "Table dimension mismatch");
+        }
+
+        private static void TestTableMatrixAndFormulas()
+        {
+            byte[] mockBin = new byte[0x10000];
+            // Write a test 16-bit value at address 0x84: 3173 (raw) -> 3.173 ms
+            int addr = 0x84;
+            mockBin[addr] = 0x65;
+            mockBin[addr + 1] = 0x0C; // 0x0C65 = 3173
+
+            XdfTable tbl = new XdfTable
+            {
+                AxisX = new XdfAxis("x") { IndexCount = 29 },
+                AxisY = new XdfAxis("y") { IndexCount = 29 },
+                AxisZ = new XdfAxis("z") { Address = 0x84, ElementSizeBytes = 2, MathEquation = "X/1000" }
+            };
+
+            float disp = tbl.GetDisplayValue(mockBin, 0, 0);
+            Assert(Math.Abs(disp - 3.173f) < 0.001f, "Display value mismatch: " + disp);
+
+            // Set a new value 4.520 ms
+            tbl.SetDisplayValue(mockBin, 0, 0, 4.520f);
+            float dispNew = tbl.GetDisplayValue(mockBin, 0, 0);
+            Assert(Math.Abs(dispNew - 4.520f) < 0.002f, "Updated display value mismatch: " + dispNew);
+            ushort rawNew = (ushort)(mockBin[addr] | (mockBin[addr + 1] << 8));
+            Assert(rawNew == 4520, "Raw binary value mismatch: " + rawNew);
+        }
+
+        private static void TestMapMathTransforms()
+        {
+            byte[] mockBin = new byte[0x10000];
+            XdfDefinition def = XdfDefinition.GetBuiltinDefinition("Wave 110i LED");
+            MapTuningSession sess = new MapTuningSession();
+            sess.LoadBin(mockBin);
+            sess.LoadDefinition(def);
+
+            XdfTable tbl = def.Tables[0];
+            tbl.SetDisplayValue(sess.ActiveBin, 0, 0, 3.000f);
+            tbl.SetDisplayValue(sess.ActiveBin, 0, 1, 3.000f);
+
+            sess.SelectedRange = new System.Drawing.Rectangle(0, 0, 2, 1);
+
+            // Add 10%
+            sess.AddPercent(10f);
+            float v1 = tbl.GetDisplayValue(sess.ActiveBin, 0, 0);
+            Assert(Math.Abs(v1 - 3.300f) < 0.005f, "AddPercent failed: " + v1);
+
+            // Undo
+            bool undone = sess.Undo();
+            Assert(undone, "Undo failed");
+            float vOrig = tbl.GetDisplayValue(sess.ActiveBin, 0, 0);
+            Assert(Math.Abs(vOrig - 3.000f) < 0.005f, "Undo value mismatch: " + vOrig);
+
+            // Add offset +0.5
+            sess.AddOffset(0.5f);
+            float vOff = tbl.GetDisplayValue(sess.ActiveBin, 0, 0);
+            Assert(Math.Abs(vOff - 3.500f) < 0.005f, "AddOffset failed: " + vOff);
+        }
+
+        private static void TestMapInterpolation()
+        {
+            byte[] mockBin = new byte[0x10000];
+            XdfDefinition def = XdfDefinition.GetBuiltinDefinition("Wave 110i LED");
+            MapTuningSession sess = new MapTuningSession();
+            sess.LoadBin(mockBin);
+            sess.LoadDefinition(def);
+
+            XdfTable tbl = def.Tables[0];
+            tbl.SetDisplayValue(sess.ActiveBin, 0, 0, 2.000f);
+            tbl.SetDisplayValue(sess.ActiveBin, 0, 4, 6.000f);
+
+            sess.SelectedRange = new System.Drawing.Rectangle(0, 0, 5, 1);
+            sess.InterpolateHorizontal();
+
+            float vMid = tbl.GetDisplayValue(sess.ActiveBin, 0, 2);
+            Assert(Math.Abs(vMid - 4.000f) < 0.01f, "Interpolation midpoint mismatch: " + vMid);
+        }
+
+        private static void TestSaveTunedBinAndChecksum()
+        {
+            byte[] mockBin = new byte[0x10000];
+            XdfDefinition def = XdfDefinition.GetBuiltinDefinition("Wave 110i LED");
+            MapTuningSession sess = new MapTuningSession();
+            sess.LoadBin(mockBin);
+            sess.LoadDefinition(def);
+
+            string tempFile = Path.Combine(Path.GetTempPath(), "test_map_tuned_" + Guid.NewGuid().ToString("N") + ".bin");
+            try
+            {
+                int ckOff;
+                bool saved = sess.SaveTunedBin(tempFile, out ckOff);
+                Assert(saved, "Failed to save tuned BIN");
+                Assert(ckOff == 0x7600, "Keihin 64KB checksum offset mismatch: " + ckOff);
+                Assert(File.Exists(tempFile), "Tuned file does not exist on disk");
+            }
+            finally
+            {
+                if (File.Exists(tempFile)) File.Delete(tempFile);
             }
         }
 
